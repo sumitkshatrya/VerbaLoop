@@ -110,6 +110,7 @@ const CONVERSATIONAL_DICTIONARY: Record<
 
 export class TranslationService {
   private inFlightTurns: Set<string> = new Set();
+  private geminiCooldownUntil: number = 0;
 
   markTurnInFlight(turnId: string): void {
     this.inFlightTurns.add(turnId);
@@ -169,8 +170,8 @@ export class TranslationService {
         }
       }
 
-      // 1. Try Gemini if configured
-      if (config.geminiApiKey) {
+      // 1. Try Gemini if configured and not in rate-limit cooldown
+      if (config.geminiApiKey && Date.now() > this.geminiCooldownUntil) {
         try {
           const result = await this.translateWithGemini(
             cleanText,
@@ -186,7 +187,12 @@ export class TranslationService {
           };
         } catch (err: any) {
           if (err.message?.includes('cancelled')) throw err;
-          console.warn('⚠️ [Translation] Gemini failed, falling back:', err.message);
+          if (err.message?.includes('429') || err.message?.includes('Quota exceeded') || err.message?.includes('exceeded your current quota')) {
+            this.geminiCooldownUntil = Date.now() + 10 * 60 * 1000;
+            console.warn('⚠️ [Translation] Gemini free-tier quota reached. Activating 10-minute circuit breaker to preserve instant responsiveness.');
+          } else {
+            console.warn('⚠️ [Translation] Gemini failed, falling back:', err.message);
+          }
         }
       }
 
@@ -211,7 +217,7 @@ export class TranslationService {
         }
       }
 
-      // 3. Try MyMemory Free API
+      // 3. Try MyMemory Free API (max 2000ms before instant fallback)
       try {
         const result = await this.translateWithMyMemory(
           cleanText,
@@ -227,7 +233,7 @@ export class TranslationService {
         };
       } catch (err: any) {
         if (err.message?.includes('cancelled')) throw err;
-        console.warn('⚠️ [Translation] MyMemory failed, falling back to local engine:', err.message);
+        console.warn('⚠️ [Translation] MyMemory timed out or failed, using instant local engine:', err.message);
       }
 
       // 4. Resilient Local Engine fallback
@@ -268,7 +274,7 @@ CRITICAL INSTRUCTIONS:
 Original text:
 ${text}`;
 
-    const models = ['gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-1.5-flash'];
+    const models = ['gemini-3.5-flash-lite', 'gemini-flash-latest'];
     let lastError: Error | null = null;
 
     try {
@@ -382,7 +388,7 @@ ${text}`;
     targetLang: SupportedLanguageCode
   ): Promise<{ translatedText: string; provider: string; confidence: number }> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+    const timeout = setTimeout(() => controller.abort(), 2000);
 
     const langPair = `${sourceLang}|${targetLang}`;
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
