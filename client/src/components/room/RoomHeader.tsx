@@ -37,18 +37,15 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const pathname = typeof window !== 'undefined' ? window.location.pathname.replace(/\/$/, '') : '';
-  const inviteUrl = room.roomCode ? `${origin}${pathname}?room=${room.roomCode}` : '';
-
-  const handleCopyLink = async () => {
-    if (!inviteUrl) return;
+  const handleCopyCode = async () => {
+    if (!room?.roomCode) return;
+    const code = room.roomCode.trim().toUpperCase();
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(inviteUrl);
+        await navigator.clipboard.writeText(code);
       } else {
         const textArea = document.createElement('textarea');
-        textArea.value = inviteUrl;
+        textArea.value = code;
         textArea.style.position = 'fixed';
         textArea.style.left = '-9999px';
         document.body.appendChild(textArea);
@@ -88,53 +85,40 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 
           <div className="h-5 w-px bg-charcoal-200 hidden sm:block" />
 
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            {/* Room Code Badge */}
-            <div className="flex items-center gap-1.5 bg-canvas px-2.5 py-1 rounded-lg border border-charcoal-200 shrink-0">
-              <span className="text-[10px] font-bold uppercase text-charcoal-500">Room</span>
-              <span className="text-xs font-mono font-bold text-charcoal-900 tracking-wider">
+          <div className="flex items-center gap-2">
+            {/* Room Code Badge with Direct Code Copy */}
+            <div className="flex items-center gap-2 bg-canvas px-3 py-1.5 rounded-xl border border-charcoal-200 shadow-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal-500">Room</span>
+              <span className="text-sm font-mono font-black text-charcoal-900 tracking-wider">
                 {room.roomCode}
               </span>
+              <button
+                onClick={handleCopyCode}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  copied
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-white text-charcoal-800 hover:text-accent-teal hover:border-accent-teal/40 border border-charcoal-200 shadow-xs'
+                }`}
+                title={`Copy room code: ${room.roomCode}`}
+                aria-label="Copy room code"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Code</span>
+                  </>
+                )}
+              </button>
             </div>
-
-            {/* Full Shareable Invite Address */}
-            {inviteUrl && (
-              <div className="flex items-center gap-1.5 bg-canvas-subtle pl-2.5 pr-1 py-0.5 rounded-lg border border-charcoal-200 max-w-[210px] sm:max-w-xs md:max-w-sm">
-                <span
-                  className="text-[11px] font-mono text-charcoal-700 truncate select-all cursor-pointer"
-                  onClick={handleCopyLink}
-                  title={`Click to copy: ${inviteUrl}`}
-                >
-                  {inviteUrl}
-                </span>
-                <button
-                  onClick={handleCopyLink}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all shrink-0 ${
-                    copied
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-white text-charcoal-700 hover:text-accent-teal hover:bg-canvas border border-charcoal-200 shadow-xs'
-                  }`}
-                  title="Copy full invite link"
-                  aria-label="Copy invitation link"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-bold">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span className="text-[10px] hidden sm:inline">Copy Link</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
 
             {/* Participant Status */}
             <span
-              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border shrink-0 ${
+              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border shrink-0 ${
                 room.participants.length === 2
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                   : 'bg-amber-50 text-amber-800 border-amber-200'
