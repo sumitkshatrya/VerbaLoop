@@ -264,11 +264,15 @@ export const DemoRoom: React.FC<DemoRoomProps> = ({ onExitDemo }) => {
         ...prev,
         {
           turnId: `demo_t_${currentStepIndex}`,
+          roomCode: 'LOOP-DEMO',
+          speakerId: stepData.speaker === 'Arjun' ? 'p_arjun' : activeScenario === 'indic' ? 'p_priya' : 'p_mei',
           speakerName: stepData.speaker,
-          speakerLanguage: stepData.speakerLangCode,
+          speakerLanguage: stepData.speakerLangCode as any,
           originalText: stepData.originalText,
           translatedText: stepData.translatedText,
-          targetLanguage: stepData.targetLangCode,
+          targetLanguage: stepData.targetLangCode as any,
+          status: 'completed',
+          isPartial: false,
           isInterrupted: Boolean(stepData.isInterrupted),
           isCorrected: Boolean(stepData.isCorrected),
           correction: stepData.isCorrected

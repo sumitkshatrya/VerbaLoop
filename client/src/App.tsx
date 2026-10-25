@@ -223,6 +223,8 @@ export function App() {
           onDelete={deleteConversation}
           onOpenSummary={() => setShowSummaryModal(true)}
           onLeave={() => {
+            cancelAudioPlayback();
+            stopListening();
             leaveRoom();
             setView('landing');
           }}

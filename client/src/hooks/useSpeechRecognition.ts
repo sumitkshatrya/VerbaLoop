@@ -93,10 +93,6 @@ export function useSpeechRecognition({
           onPartial(combined);
         }
       }
-
-      if (finalTranscript && onFinal) {
-        onFinal(finalTranscript.trim());
-      }
     };
 
     recognition.onerror = (event: any) => {

@@ -15,6 +15,9 @@ export class ConversationSummaryService {
     const participantLanguages = Array.from(
       new Set(participants.map((p) => p.language))
     );
+    if (participantLanguages.length === 0) {
+      participantLanguages.push('en');
+    }
 
     const completedTurns = turns.filter((t) => t.status === 'completed');
     const interruptedTurns = turns.filter((t) => t.isInterrupted).length;
@@ -101,55 +104,63 @@ TRANSCRIPT:
 ${transcript}`;
 
     let jsonText = '';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
-    if (config.geminiApiKey) {
-      const models = ['gemini-3.5-flash-lite', 'gemini-flash-latest'];
-      for (const model of models) {
-        try {
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.geminiApiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                  temperature: 0.1,
-                  responseMimeType: 'application/json',
-                },
-              }),
+    try {
+      if (config.geminiApiKey) {
+        const models = ['gemini-3.8-flash', 'gemini-flash-latest'];
+        for (const model of models) {
+          try {
+            const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.geminiApiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: {
+                    temperature: 0.1,
+                    responseMimeType: 'application/json',
+                  },
+                }),
+                signal: controller.signal,
+              }
+            );
+            if (response.ok) {
+              const data = await response.json();
+              jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+              if (jsonText) break;
             }
-          );
-          if (response.ok) {
-            const data = await response.json();
-            jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-            if (jsonText) break;
+          } catch {
+            // Continue to next model
           }
-        } catch {
-          // Continue to next model
+        }
+      } else if (config.openaiApiKey) {
+        const response = await fetch(`${config.openaiApiBaseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${config.openaiApiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: 'You are a neutral, objective debate referee analyzing conversations.' },
+              { role: 'user', content: prompt },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.1,
+          }),
+          signal: controller.signal,
+        });
+        if (response.ok) {
+          const data = await response.json();
+          jsonText = data.choices?.[0]?.message?.content?.trim() || '';
         }
       }
-    } else if (config.openaiApiKey) {
-      const response = await fetch(`${config.openaiApiBaseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${config.openaiApiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: 'You are a neutral, objective debate referee analyzing conversations.' },
-            { role: 'user', content: prompt },
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.1,
-        }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        jsonText = data.choices?.[0]?.message?.content?.trim() || '';
-      }
+    } finally {
+      clearTimeout(timeout);
     }
 
     if (!jsonText) return null;

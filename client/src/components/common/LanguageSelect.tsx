@@ -110,7 +110,9 @@ export const LanguageSelect: React.FC<LanguageSelectProps> = ({
         className="w-full bg-white border border-charcoal-200 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium text-charcoal-900 shadow-subtle flex items-center justify-between gap-2 hover:border-accent-teal/60 focus:outline-none focus:ring-2 focus:ring-accent-teal/40 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
       >
         <div className="flex items-center gap-2.5 truncate">
-          <span className="text-xl shrink-0 leading-none">{selectedLang.flag}</span>
+          <span className="inline-flex items-center justify-center w-7 h-6 rounded-md bg-canvas-subtle border border-charcoal-200 text-xs font-bold font-mono text-charcoal-800 shadow-xs shrink-0 select-none">
+            {selectedLang.flag}
+          </span>
           <span className="font-bold text-charcoal-900 truncate">
             {selectedLang.name}
           </span>
@@ -152,11 +154,11 @@ export const LanguageSelect: React.FC<LanguageSelectProps> = ({
         </div>
       )}
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - In-flow expandable so modals scroll naturally without clipping */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-white border border-charcoal-200 rounded-2xl shadow-elevated overflow-hidden flex flex-col max-h-[360px] animate-in fade-in zoom-in-95 duration-150">
+        <div className="mt-2 bg-white border border-charcoal-200 rounded-xl shadow-card overflow-hidden flex flex-col max-h-[260px] animate-in fade-in duration-150">
           {/* Search Header */}
-          <div className="p-2.5 bg-canvas-subtle border-b border-charcoal-200 flex items-center gap-2">
+          <div className="p-2.5 bg-canvas-subtle border-b border-charcoal-200 flex items-center gap-2 shrink-0">
             <Search className="w-4 h-4 text-charcoal-400 shrink-0 ml-1" />
             <input
               ref={searchInputRef}
@@ -169,7 +171,7 @@ export const LanguageSelect: React.FC<LanguageSelectProps> = ({
           </div>
 
           {/* Languages List */}
-          <div className="overflow-y-auto p-1.5 space-y-3" role="listbox">
+          <div className="overflow-y-auto p-1.5 space-y-3 flex-1" role="listbox">
             {/* 1. Eighth Schedule Indian Languages Group */}
             {scheduledIndian.length > 0 && (
               <div>
@@ -237,7 +239,9 @@ export const LanguageSelect: React.FC<LanguageSelectProps> = ({
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="text-lg leading-none shrink-0">{lang.flag}</span>
+          <span className="inline-flex items-center justify-center w-7 h-6 rounded-md bg-canvas-subtle border border-charcoal-200 text-xs font-bold font-mono text-charcoal-800 shadow-xs shrink-0 select-none">
+            {lang.flag}
+          </span>
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-charcoal-900 truncate">

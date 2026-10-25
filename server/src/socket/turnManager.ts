@@ -15,7 +15,7 @@ export class TurnManager {
     turnId: string,
     speakerId: string,
     inputType: 'voice' | 'text'
-  ): Promise<{ room: RoomState; turn: TurnMessage }> {
+  ): Promise<{ room: RoomState; turn: TurnMessage; interruptedPreviousTurn?: TurnMessage | null }> {
     const room = await this.storage.getRoom(roomCode);
     if (!room) throw new Error('Room not found');
 
@@ -28,6 +28,30 @@ export class TurnManager {
 
     const speaker = room.participants.find((p) => p.id === speakerId);
     if (!speaker) throw new Error('Speaker is not a member of this room');
+
+    // Auto-interrupt any previous active turn from another speaker
+    let interruptedPreviousTurn: TurnMessage | null = null;
+    if (room.activeTurnId && room.activeTurnId !== turnId) {
+      const prevTurn = room.turns.find((t) => t.turnId === room.activeTurnId);
+      if (
+        prevTurn &&
+        prevTurn.speakerId !== speakerId &&
+        (prevTurn.status === 'speaking' || prevTurn.status === 'translating')
+      ) {
+        translationService.cancelTurn(prevTurn.turnId);
+        prevTurn.status = 'interrupted';
+        prevTurn.isInterrupted = true;
+        prevTurn.interruptedBy = speakerId;
+        prevTurn.interruptedAt = Date.now();
+        await this.storage.updateTurn(roomCode, prevTurn.turnId, {
+          status: 'interrupted',
+          isInterrupted: true,
+          interruptedBy: speakerId,
+          interruptedAt: prevTurn.interruptedAt,
+        });
+        interruptedPreviousTurn = prevTurn;
+      }
+    }
 
     // Find receiver
     const receiver = room.participants.find((p) => p.id !== speakerId);
@@ -56,7 +80,7 @@ export class TurnManager {
     await this.storage.addTurn(roomCode, turn);
     await this.storage.updateRoom(roomCode, { activeTurnId: turnId });
 
-    return { room, turn };
+    return { room, turn, interruptedPreviousTurn };
   }
 
   async updatePartial(

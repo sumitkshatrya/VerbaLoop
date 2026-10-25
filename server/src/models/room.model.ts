@@ -33,7 +33,7 @@ const TurnMessageSchema = new Schema<TurnMessage>(
     speakerId: { type: String, required: true },
     speakerName: { type: String, required: true },
     speakerLanguage: { type: String, required: true },
-    originalText: { type: String, required: true },
+    originalText: { type: String, default: '' },
     translatedText: { type: String, default: '' },
     targetLanguage: { type: String, required: true },
     status: {

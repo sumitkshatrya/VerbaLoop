@@ -4,9 +4,16 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Logo } from '../src/components/common/Logo';
 import { LanguageSelect } from '../src/components/common/LanguageSelect';
 import { TurnControls } from '../src/components/room/TurnControls';
+import { ConversationTranscript } from '../src/components/room/ConversationTranscript';
+import { EndSummaryModal } from '../src/components/room/EndSummaryModal';
+import { CreateRoomModal } from '../src/components/room/CreateRoomModal';
+import { JoinRoomModal } from '../src/components/room/JoinRoomModal';
 import { DemoRoom } from '../src/components/demo/DemoRoom';
 import {
   Participant,
+  TurnMessage,
+  ConversationSummary,
+  RoomState,
   SUPPORTED_LANGUAGES,
   getLanguage,
   isRTL,
@@ -195,5 +202,126 @@ describe('Frontend UI Components & Multilingual Features', () => {
     fireEvent.click(intlBtn);
 
     expect(screen.getAllByText(/Mei/i).length).toBeGreaterThan(0);
+  });
+
+  it('renders ConversationTranscript with interrupted turn badges and translations', () => {
+    const mockUser: Participant = {
+      id: 'p1',
+      name: 'Arjun',
+      language: 'hi',
+      isHost: true,
+      isReady: true,
+      isAudioReady: true,
+      socketId: 'sock_1',
+      joinedAt: Date.now(),
+    };
+
+    const turns: TurnMessage[] = [
+      {
+        turnId: 't1',
+        roomCode: 'LOOP-TEST',
+        speakerId: 'p1',
+        speakerName: 'Arjun',
+        speakerLanguage: 'hi',
+        originalText: 'हम असहमत हैं।',
+        translatedText: 'We disagree.',
+        targetLanguage: 'en',
+        status: 'interrupted',
+        isPartial: false,
+        isInterrupted: true,
+        createdAt: Date.now() - 5000,
+      },
+    ];
+
+    render(
+      <ConversationTranscript
+        turns={turns}
+        currentParticipant={mockUser}
+        streamingTurn={null}
+        onOpenCorrection={() => {}}
+      />
+    );
+
+    expect(screen.getByText('हम असहमत हैं।')).toBeInTheDocument();
+    expect(screen.getByText('We disagree.')).toBeInTheDocument();
+    expect(screen.getByText(/Interrupted/i)).toBeInTheDocument();
+  });
+
+  it('renders EndSummaryModal with bilingual tabs and formatted sections', () => {
+    const mockRoom: RoomState = {
+      roomCode: 'LOOP-SUMM',
+      status: 'ended',
+      participants: [
+        { id: 'p1', name: 'Arjun', language: 'hi', isHost: true, isReady: true, isAudioReady: true, socketId: 's1', joinedAt: 0 },
+        { id: 'p2', name: 'Mei', language: 'zh', isHost: false, isReady: true, isAudioReady: true, socketId: 's2', joinedAt: 0 },
+      ],
+      turns: [],
+      createdAt: 0,
+      updatedAt: 0,
+    };
+
+    const mockSummary: ConversationSummary = {
+      roomCode: 'LOOP-SUMM',
+      generatedAt: Date.now(),
+      durationSeconds: 120,
+      totalTurns: 6,
+      interruptedTurns: 2,
+      mainDisagreement: {
+        en: 'Testing speed versus rigorous validation.',
+        hi: 'परीक्षण गति बनाम कठोर सत्यापन।',
+      },
+      participantPositions: [
+        {
+          participantId: 'p1',
+          participantName: 'Arjun',
+          positions: { en: 'Advocated safety checks.', hi: 'सुरक्षा जांच की वकालत की।' },
+        },
+      ],
+      pointsOfAgreement: {
+        en: ['Transparent reporting is necessary.'],
+      },
+      unresolvedQuestions: {
+        en: ['Who determines release criteria?'],
+      },
+      changesOfMind: [
+        {
+          participantId: 'p1',
+          participantName: 'Arjun',
+          description: { en: 'Conceded on phased canary release.' },
+        },
+      ],
+    };
+
+    render(
+      <EndSummaryModal
+        isOpen={true}
+        room={mockRoom}
+        summary={mockSummary}
+        onClose={() => {}}
+        onDeleteConversation={() => {}}
+      />
+    );
+
+    expect(screen.getByText(/End-of-Conversation Bilingual Summary/i)).toBeInTheDocument();
+    expect(screen.getByText(/Testing speed versus rigorous validation/i)).toBeInTheDocument();
+    expect(screen.getByText(/Interrupted: 2/i)).toBeInTheDocument();
+    expect(screen.getByText(/Explicitly Stated Changes of Mind/i)).toBeInTheDocument();
+    expect(screen.getByText(/Conceded on phased canary release/i)).toBeInTheDocument();
+  });
+
+  it('validates CreateRoomModal character constraints and required inputs', () => {
+    render(
+      <CreateRoomModal
+        isOpen={true}
+        onClose={() => {}}
+        onCreateRoom={vi.fn()}
+      />
+    );
+
+    const nameInput = screen.getByPlaceholderText(/e\.g\. Arjun or Mei/i);
+    expect(nameInput).toHaveAttribute('maxLength', '50');
+
+    const topicInput = screen.getByPlaceholderText(/e\.g\. Speed vs Security in AI releases/i);
+    expect(topicInput).toHaveAttribute('maxLength', '120');
   });
 });

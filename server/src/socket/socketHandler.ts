@@ -131,12 +131,20 @@ export function setupSocketHandlers(
           return;
         }
 
-        const { room, turn } = await turnManager.startTurn(
+        const { room, turn, interruptedPreviousTurn } = await turnManager.startTurn(
           payload.roomCode,
           payload.turnId,
           payload.speakerId,
           payload.inputType
         );
+
+        if (interruptedPreviousTurn) {
+          io.to(payload.roomCode).emit(SOCKET_EVENTS.TURN_INTERRUPT, {
+            turnId: interruptedPreviousTurn.turnId,
+            interruptedBy: payload.speakerId,
+            turn: interruptedPreviousTurn,
+          });
+        }
 
         io.to(payload.roomCode).emit(SOCKET_EVENTS.TURN_START, turn);
         io.to(payload.roomCode).emit(SOCKET_EVENTS.ROOM_STATE, room);

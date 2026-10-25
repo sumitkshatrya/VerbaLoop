@@ -140,7 +140,7 @@ export class RoomManager {
         name: participantName.trim(),
         language: participantLanguage,
         isHost: false,
-        isReady: false,
+        isReady: true,
         isAudioReady: false,
         socketId,
         isSpeaking: false,
@@ -152,7 +152,7 @@ export class RoomManager {
 
     // If 2 participants present, set status to ready or active
     if (room.participants.length === 2) {
-      room.status = 'ready';
+      room.status = 'active';
     }
 
     await this.storage.updateRoom(normalizedCode, {
@@ -284,6 +284,30 @@ export class RoomManager {
 
     this.activeSockets.delete(socketId);
     const room = await this.storage.getRoom(mapping.roomCode);
+
+    if (room) {
+      // Clear audio flags for disconnected participant
+      const part = room.participants.find((p) => p.id === mapping.participantId);
+      if (part) {
+        part.isSpeaking = false;
+        part.isListening = false;
+      }
+
+      // If disconnected participant held the active turn, cancel it so room doesn't freeze
+      if (room.activeTurnId) {
+        const activeTurn = room.turns.find((t) => t.turnId === room.activeTurnId);
+        if (activeTurn && activeTurn.speakerId === mapping.participantId) {
+          activeTurn.status = 'cancelled';
+          await this.storage.updateTurn(room.roomCode, activeTurn.turnId, { status: 'cancelled' });
+          room.activeTurnId = null;
+        }
+      }
+
+      await this.storage.updateRoom(mapping.roomCode, {
+        participants: room.participants,
+        activeTurnId: room.activeTurnId,
+      });
+    }
 
     return {
       roomCode: mapping.roomCode,

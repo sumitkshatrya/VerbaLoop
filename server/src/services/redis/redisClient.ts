@@ -105,10 +105,16 @@ export class RedisService {
     if (!this.pubClient) {
       this.pubClient = this.client.duplicate();
       this.pubClient.on('error', () => {});
+      if (this.pubClient.status === 'wait') {
+        this.pubClient.connect().catch(() => {});
+      }
     }
     if (!this.subClient) {
       this.subClient = this.client.duplicate();
       this.subClient.on('error', () => {});
+      if (this.subClient.status === 'wait') {
+        this.subClient.connect().catch(() => {});
+      }
     }
     return { pubClient: this.pubClient, subClient: this.subClient };
   }

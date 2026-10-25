@@ -48,9 +48,9 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl max-w-md w-full border border-charcoal-200 shadow-elevated overflow-hidden">
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[92vh] border border-charcoal-200 shadow-elevated flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-canvas-subtle px-6 py-4 border-b border-charcoal-200 flex items-center justify-between">
+        <div className="bg-canvas-subtle px-6 py-4 border-b border-charcoal-200 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-accent-tealLight text-accent-teal flex items-center justify-center">
               <MessageSquarePlus className="w-4 h-4" />
@@ -69,87 +69,92 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-              <span>{error}</span>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="p-6 space-y-4 overflow-y-auto flex-1">
+            {error && (
+              <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wide mb-1.5">
+                Your Name / Alias
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={50}
+                value={hostName}
+                onChange={(e) => setHostName(e.target.value)}
+                placeholder="e.g. Arjun or Mei"
+                className="w-full bg-white border border-charcoal-200 rounded-lg px-3.5 py-2.5 text-sm font-medium text-charcoal-900 shadow-subtle focus:outline-none focus:ring-2 focus:ring-accent-teal/40 focus:border-accent-teal"
+              />
             </div>
-          )}
 
-          <div>
-            <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wide mb-1.5">
-              Your Name / Alias
-            </label>
-            <input
-              type="text"
-              required
-              value={hostName}
-              onChange={(e) => setHostName(e.target.value)}
-              placeholder="e.g. Arjun or Mei"
-              className="w-full bg-white border border-charcoal-200 rounded-lg px-3.5 py-2.5 text-sm font-medium text-charcoal-900 shadow-subtle focus:outline-none focus:ring-2 focus:ring-accent-teal/40 focus:border-accent-teal"
+            <LanguageSelect
+              label="Your Preferred Language"
+              value={hostLanguage}
+              onChange={setHostLanguage}
             />
-          </div>
 
-          <LanguageSelect
-            label="Your Preferred Language"
-            value={hostLanguage}
-            onChange={setHostLanguage}
-          />
-
-          <div>
-            <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wide mb-1.5">
-              Debate Topic / Premise <span className="text-charcoal-400 font-normal">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g. Speed vs Security in AI releases"
-              className="w-full bg-white border border-charcoal-200 rounded-lg px-3.5 py-2.5 text-sm font-medium text-charcoal-900 shadow-subtle focus:outline-none focus:ring-2 focus:ring-accent-teal/40 focus:border-accent-teal"
-            />
-          </div>
-
-          {/* Audio vs Text Mode Toggle */}
-          <div>
-            <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wide mb-1.5">
-              Preferred Input Mode
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setAudioMode('voice')}
-                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
-                  audioMode === 'voice'
-                    ? 'bg-accent-tealLight text-accent-teal border-accent-teal'
-                    : 'bg-white text-charcoal-600 border-charcoal-200 hover:bg-canvas'
-                }`}
-              >
-                <Mic className="w-3.5 h-3.5" />
-                <span>Voice & Speech</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setAudioMode('text')}
-                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
-                  audioMode === 'text'
-                    ? 'bg-accent-tealLight text-accent-teal border-accent-teal'
-                    : 'bg-white text-charcoal-600 border-charcoal-200 hover:bg-canvas'
-                }`}
-              >
-                <MicOff className="w-3.5 h-3.5" />
-                <span>Text-Only Mode</span>
-              </button>
+            <div>
+              <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wide mb-1.5">
+                Debate Topic / Premise <span className="text-charcoal-400 font-normal">(Optional, max 120 chars)</span>
+              </label>
+              <input
+                type="text"
+                maxLength={120}
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="e.g. Speed vs Security in AI releases"
+                className="w-full bg-white border border-charcoal-200 rounded-lg px-3.5 py-2.5 text-sm font-medium text-charcoal-900 shadow-subtle focus:outline-none focus:ring-2 focus:ring-accent-teal/40 focus:border-accent-teal"
+              />
             </div>
-            <p className="text-[11px] text-charcoal-500 mt-1">
-              {audioMode === 'voice'
-                ? 'Microphone required. Instant speech-to-text with audio playback.'
-                : 'No mic permissions required. Type messages directly.'}
-            </p>
+
+            {/* Audio vs Text Mode Toggle */}
+            <div>
+              <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wide mb-1.5">
+                Preferred Input Mode
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAudioMode('voice')}
+                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
+                    audioMode === 'voice'
+                      ? 'bg-accent-tealLight text-accent-teal border-accent-teal'
+                      : 'bg-white text-charcoal-600 border-charcoal-200 hover:bg-canvas'
+                  }`}
+                >
+                  <Mic className="w-3.5 h-3.5" />
+                  <span>Voice & Speech</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAudioMode('text')}
+                  className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
+                    audioMode === 'text'
+                      ? 'bg-accent-tealLight text-accent-teal border-accent-teal'
+                      : 'bg-white text-charcoal-600 border-charcoal-200 hover:bg-canvas'
+                  }`}
+                >
+                  <MicOff className="w-3.5 h-3.5" />
+                  <span>Text-Only Mode</span>
+                </button>
+              </div>
+              <p className="text-[11px] text-charcoal-500 mt-1">
+                {audioMode === 'voice'
+                  ? 'Microphone required. Instant speech-to-text with audio playback.'
+                  : 'No mic permissions required. Type messages directly.'}
+              </p>
+            </div>
           </div>
 
-          <div className="pt-2">
+          {/* Sticky Action Footer */}
+          <div className="p-4 bg-canvas-subtle border-t border-charcoal-200 shrink-0">
             <button
               type="submit"
               disabled={loading}

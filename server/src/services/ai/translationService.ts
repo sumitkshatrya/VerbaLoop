@@ -262,7 +262,7 @@ export class TranslationService {
     const tgt = getLanguage(targetLang).name;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
+    const timeout = setTimeout(() => controller.abort(), 3000);
 
     const prompt = `Translate the following conversational text from ${src} to ${tgt}.
 CRITICAL INSTRUCTIONS:
@@ -274,7 +274,7 @@ CRITICAL INSTRUCTIONS:
 Original text:
 ${text}`;
 
-    const models = ['gemini-3.5-flash-lite', 'gemini-flash-latest'];
+    const models = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
     let lastError: Error | null = null;
 
     try {
