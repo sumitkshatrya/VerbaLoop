@@ -56,42 +56,48 @@ export const EndSummaryModal: React.FC<EndSummaryModalProps> = ({
   }, []);
 
   const handleCopySummary = () => {
+    const mainDisagreements = summary.mainDisagreement || {};
+    const participantPositions = summary.participantPositions || [];
+    const pointsOfAgreement = summary.pointsOfAgreement || {};
+    const unresolvedQuestions = summary.unresolvedQuestions || {};
+    const changesOfMind = summary.changesOfMind || [];
+
     const text = `
 VERBALOOP CONVERSATION SUMMARY (${getLanguage(selectedLang).name})
 Room: ${summary.roomCode}
 Duration: ${summary.durationSeconds}s | Total Turns: ${summary.totalTurns} | Interrupted: ${summary.interruptedTurns}
 
 MAIN DISAGREEMENT:
-${summary.mainDisagreement[selectedLang] || summary.mainDisagreement['en'] || 'N/A'}
+${mainDisagreements[selectedLang] || mainDisagreements['en'] || 'N/A'}
 
 PARTICIPANT POSITIONS:
-${summary.participantPositions
+${participantPositions
   .map(
     (p) =>
       `• ${p.participantName}: ${
-        p.positions[selectedLang] || p.positions['en'] || ''
+        p.positions?.[selectedLang] || p.positions?.['en'] || ''
       }`
   )
   .join('\n')}
 
 POINTS OF AGREEMENT:
-${(summary.pointsOfAgreement[selectedLang] || summary.pointsOfAgreement['en'] || [])
+${(pointsOfAgreement[selectedLang] || pointsOfAgreement['en'] || [])
   .map((pt) => `• ${pt}`)
   .join('\n')}
 
 UNRESOLVED QUESTIONS:
-${(summary.unresolvedQuestions[selectedLang] || summary.unresolvedQuestions['en'] || [])
+${(unresolvedQuestions[selectedLang] || unresolvedQuestions['en'] || [])
   .map((q) => `• ${q}`)
   .join('\n')}
 
 CHANGES OF MIND:
 ${
-  summary.changesOfMind.length > 0
-    ? summary.changesOfMind
+  changesOfMind.length > 0
+    ? changesOfMind
         .map(
           (m) =>
             `• ${m.participantName}: ${
-              m.description[selectedLang] || m.description['en'] || ''
+              m.description?.[selectedLang] || m.description?.['en'] || ''
             }`
         )
         .join('\n')
@@ -197,8 +203,8 @@ ${
               <span>Main Disagreement</span>
             </div>
             <p className="text-sm font-semibold text-charcoal-900 leading-relaxed">
-              {summary.mainDisagreement[selectedLang] ||
-                summary.mainDisagreement['en'] ||
+              {summary.mainDisagreement?.[selectedLang] ||
+                summary.mainDisagreement?.['en'] ||
                 'No strong dispute logged.'}
             </p>
           </div>
@@ -210,7 +216,7 @@ ${
               <span>Each Participant's Stance</span>
             </div>
             <div className="space-y-2.5">
-              {summary.participantPositions.map((p, idx) => (
+              {(summary.participantPositions || []).map((p, idx) => (
                 <div
                   key={idx}
                   className="p-3.5 rounded-lg bg-white border border-charcoal-200 shadow-subtle flex flex-col gap-1"
@@ -219,7 +225,7 @@ ${
                     {p.participantName}
                   </span>
                   <p className="text-xs text-charcoal-700 leading-relaxed font-medium">
-                    {p.positions[selectedLang] || p.positions['en']}
+                    {p.positions?.[selectedLang] || p.positions?.['en']}
                   </p>
                 </div>
               ))}
@@ -234,8 +240,8 @@ ${
             </div>
             <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200 space-y-2">
               {(
-                summary.pointsOfAgreement[selectedLang] ||
-                summary.pointsOfAgreement['en'] ||
+                summary.pointsOfAgreement?.[selectedLang] ||
+                summary.pointsOfAgreement?.['en'] ||
                 []
               ).map((pt, idx) => (
                 <div key={idx} className="flex items-start gap-2 text-xs text-emerald-950 font-medium">
@@ -247,19 +253,19 @@ ${
           </div>
 
           {/* Changes of Mind */}
-          {summary.changesOfMind.length > 0 && (
+          {(summary.changesOfMind || []).length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-2 text-xs font-bold text-purple-900 uppercase tracking-wide">
                 <Lightbulb className="w-4 h-4 text-purple-600" />
                 <span>Explicitly Stated Changes of Mind</span>
               </div>
               <div className="bg-purple-50/60 p-4 rounded-xl border border-purple-200 space-y-2">
-                {summary.changesOfMind.map((change, idx) => (
+                {(summary.changesOfMind || []).map((change, idx) => (
                   <div key={idx} className="text-xs text-purple-950 font-medium">
                     <span className="font-bold">{change.participantName}: </span>
                     <span>
-                      {change.description[selectedLang] ||
-                        change.description['en']}
+                      {change.description?.[selectedLang] ||
+                        change.description?.['en']}
                     </span>
                   </div>
                 ))}
@@ -275,8 +281,8 @@ ${
             </div>
             <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200 space-y-2">
               {(
-                summary.unresolvedQuestions[selectedLang] ||
-                summary.unresolvedQuestions['en'] ||
+                summary.unresolvedQuestions?.[selectedLang] ||
+                summary.unresolvedQuestions?.['en'] ||
                 []
               ).map((q, idx) => (
                 <div key={idx} className="flex items-start gap-2 text-xs text-amber-950 font-medium">

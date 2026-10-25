@@ -31,6 +31,8 @@ export function App() {
     streamingTurn,
     error,
     lastInterruption,
+    lastCompletedTurn,
+    remotePlayingAudioId,
     createRoom,
     joinRoom,
     setReady,
@@ -171,30 +173,27 @@ export function App() {
     }
   };
 
-  // When receiving completed turn for peer, play spoken audio translation
-  const lastTurnRef = useRef<string | null>(null);
+  // When receiving completed turn from peer, immediately trigger speech synthesis
+  const playedTurnIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!roomState || !currentParticipant) return;
-    const lastTurn = roomState.turns[roomState.turns.length - 1];
-
+    if (!lastCompletedTurn || !currentParticipant) return;
     if (
-      lastTurn &&
-      lastTurn.turnId !== lastTurnRef.current &&
-      lastTurn.status === 'completed' &&
-      lastTurn.speakerId !== currentParticipant.id &&
-      lastTurn.translatedText
+      lastCompletedTurn.speakerId !== currentParticipant.id &&
+      lastCompletedTurn.translatedText &&
+      !lastCompletedTurn.isInterrupted &&
+      !playedTurnIdsRef.current.has(lastCompletedTurn.turnId)
     ) {
-      lastTurnRef.current = lastTurn.turnId;
-      notifyPlaybackStart(lastTurn.turnId);
+      playedTurnIdsRef.current.add(lastCompletedTurn.turnId);
+      notifyPlaybackStart(lastCompletedTurn.turnId);
 
       speak(
-        lastTurn.translatedText,
-        lastTurn.targetLanguage,
+        lastCompletedTurn.translatedText,
+        lastCompletedTurn.targetLanguage,
         undefined,
-        () => notifyPlaybackStop(lastTurn.turnId)
+        () => notifyPlaybackStop(lastCompletedTurn.turnId)
       );
     }
-  }, [roomState?.turns, currentParticipant, speak, notifyPlaybackStart, notifyPlaybackStop]);
+  }, [lastCompletedTurn, currentParticipant, speak, notifyPlaybackStart, notifyPlaybackStop]);
 
   // Peer participant
   const peerParticipant =
@@ -241,7 +240,7 @@ export function App() {
               participant={peerParticipant}
               isCurrentUser={false}
               activeTurn={activeTurn}
-              isAudioPlaying={isAudioPlaying}
+              isAudioPlaying={Boolean(peerParticipant && remotePlayingAudioId === peerParticipant.id)}
             />
           </div>
         </div>

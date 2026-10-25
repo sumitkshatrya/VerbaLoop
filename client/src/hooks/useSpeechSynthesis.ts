@@ -9,6 +9,16 @@ export function useSpeechSynthesis() {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) {
       setIsSupported(false);
+      return;
+    }
+
+    const loadVoices = () => {
+      window.speechSynthesis.getVoices();
+    };
+
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
     }
   }, []);
 
@@ -51,9 +61,12 @@ export function useSpeechSynthesis() {
 
       // Select suitable voice if available
       const voices = window.speechSynthesis.getVoices();
-      const matchingVoice = voices.find((v) =>
-        v.lang.toLowerCase().startsWith(language.toLowerCase())
-      );
+      const targetCode = langDef.speechCode.toLowerCase();
+      const langPrefix = language.toLowerCase();
+      const matchingVoice =
+        voices.find((v) => v.lang.toLowerCase() === targetCode) ||
+        voices.find((v) => v.lang.toLowerCase().startsWith(targetCode)) ||
+        voices.find((v) => v.lang.toLowerCase().startsWith(langPrefix));
       if (matchingVoice) {
         utterance.voice = matchingVoice;
       }

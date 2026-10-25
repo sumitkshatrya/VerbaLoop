@@ -35,7 +35,7 @@ export const ParticipantPanel: React.FC<ParticipantPanelProps> = ({
   // Determine current active state
   const isSpeaking = activeTurn?.speakerId === participant.id && activeTurn?.status === 'speaking';
   const isTranslating = activeTurn?.speakerId === participant.id && activeTurn?.status === 'translating';
-  const isReceivingAudio = isAudioPlaying && activeTurn?.speakerId !== participant.id;
+  const isReceivingAudio = isAudioPlaying;
 
   return (
     <div

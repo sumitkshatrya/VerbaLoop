@@ -22,6 +22,8 @@ export function useSocket() {
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [currentParticipant, setCurrentParticipant] = useState<Participant | null>(null);
   const [streamingTurn, setStreamingTurn] = useState<TurnMessage | null>(null);
+  const [lastCompletedTurn, setLastCompletedTurn] = useState<TurnMessage | null>(null);
+  const [remotePlayingAudioId, setRemotePlayingAudioId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastInterruption, setLastInterruption] = useState<InterruptionEvent | null>(null);
 
@@ -78,6 +80,7 @@ export function useSocket() {
     socket.on(SOCKET_EVENTS.TRANSLATION_COMPLETE, (turn: TurnMessage) => {
       soundEffects.playTurnComplete();
       setStreamingTurn(null);
+      setLastCompletedTurn(turn);
     });
 
     // Interruption event from peer
@@ -93,6 +96,31 @@ export function useSocket() {
 
     socket.on(SOCKET_EVENTS.CONVERSATION_PAUSE, () => {
       soundEffects.playPause();
+    });
+
+    socket.on(SOCKET_EVENTS.CONVERSATION_RESUME, () => {
+      soundEffects.playResume();
+    });
+
+    socket.on(SOCKET_EVENTS.CONVERSATION_END, (data: { summary?: ConversationSummary }) => {
+      soundEffects.playTurnComplete();
+      if (data?.summary) {
+        setRoomState((prev) => (prev ? { ...prev, status: 'ended', summary: data.summary } : null));
+      }
+    });
+
+    socket.on(SOCKET_EVENTS.CONVERSATION_DELETE, () => {
+      setRoomState(null);
+      setCurrentParticipant(null);
+      setStreamingTurn(null);
+    });
+
+    socket.on(SOCKET_EVENTS.AUDIO_PLAYBACK_START, (data: { participantId: string }) => {
+      setRemotePlayingAudioId(data.participantId);
+    });
+
+    socket.on(SOCKET_EVENTS.AUDIO_PLAYBACK_STOP, () => {
+      setRemotePlayingAudioId(null);
     });
 
     socket.on(SOCKET_EVENTS.ERROR, (err: { error: string }) => {
@@ -337,6 +365,8 @@ export function useSocket() {
     streamingTurn,
     error,
     lastInterruption,
+    lastCompletedTurn,
+    remotePlayingAudioId,
     createRoom,
     joinRoom,
     setReady,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TurnMessage, getLanguage } from '@verbaloop/shared';
 import { Edit3, X, Check, AlertCircle } from 'lucide-react';
 
@@ -19,6 +19,12 @@ export const CorrectionModal: React.FC<CorrectionModalProps> = ({
 
   const [correctedText, setCorrectedText] = useState(turn.originalText);
   const langDef = getLanguage(turn.speakerLanguage);
+
+  useEffect(() => {
+    if (turn) {
+      setCorrectedText(turn.originalText);
+    }
+  }, [turn]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

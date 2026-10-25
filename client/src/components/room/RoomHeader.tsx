@@ -42,6 +42,16 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDelete = () => {
+    if (
+      window.confirm(
+        `Are you sure you want to permanently delete room ${room.roomCode} and all conversation history? This cannot be undone.`
+      )
+    ) {
+      onDelete();
+    }
+  };
+
   const isPaused = room.status === 'paused';
   const peer = room.participants.find((p) => p.id !== currentParticipant.id);
 
@@ -137,7 +147,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 
           {/* Delete Conversation Button */}
           <button
-            onClick={onDelete}
+            onClick={handleDelete}
             className="p-1.5 text-charcoal-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
             title="Permanently delete conversation transcript and data"
             aria-label="Delete conversation permanently"
