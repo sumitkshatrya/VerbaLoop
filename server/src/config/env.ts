@@ -1,10 +1,13 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config();
-// Also attempt loading .env from server directory and root directory
+// Priority order for loading server environment (single source of truth in server/.env):
+// 1. server/.env from monorepo root (when executed via `npm run dev` or `npm --workspace=server`)
+dotenv.config({ path: path.resolve(process.cwd(), 'server/.env') });
+// 2. .env in current working directory (when executed directly inside server/ directory)
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+// 3. server/.env resolved relative to this source/dist config file
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 export interface ServerConfig {
   port: number;
