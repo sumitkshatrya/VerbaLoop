@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { SupportedLanguageCode } from '@verbaloop/shared';
+import React, { useState, useEffect } from 'react';
+import { SupportedLanguageCode, sanitizeRoomCode } from '@verbaloop/shared';
 import { LanguageSelect } from '../common/LanguageSelect';
 import { X, LogIn, AlertCircle } from 'lucide-react';
 
 interface JoinRoomModalProps {
   isOpen: boolean;
+  initialRoomCode?: string;
   onClose: () => void;
   onJoinRoom: (
     roomCode: string,
@@ -15,21 +16,29 @@ interface JoinRoomModalProps {
 
 export const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
   isOpen,
+  initialRoomCode,
   onClose,
   onJoinRoom,
 }) => {
-  const [roomCode, setRoomCode] = useState('');
+  const [roomCode, setRoomCode] = useState(initialRoomCode || '');
   const [participantName, setParticipantName] = useState('');
   const [participantLanguage, setParticipantLanguage] = useState<SupportedLanguageCode>('zh');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (initialRoomCode) {
+      setRoomCode(sanitizeRoomCode(initialRoomCode) || initialRoomCode);
+    }
+  }, [initialRoomCode]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!roomCode.trim()) {
-      setError('Please enter the 6-character room code');
+    const cleanCode = sanitizeRoomCode(roomCode);
+    if (!cleanCode) {
+      setError('Please enter a valid room code (e.g. LOOP-XXXX)');
       return;
     }
     if (!participantName.trim()) {
@@ -40,7 +49,7 @@ export const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
     setLoading(true);
 
     try {
-      await onJoinRoom(roomCode.trim().toUpperCase(), participantName.trim(), participantLanguage);
+      await onJoinRoom(cleanCode, participantName.trim(), participantLanguage);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to join room');
@@ -88,7 +97,11 @@ export const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
               type="text"
               required
               value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                const val = e.target.value;
+                const sanitized = sanitizeRoomCode(val);
+                setRoomCode(sanitized || val.toUpperCase());
+              }}
               placeholder="e.g. LOOP-7X9K"
               className="w-full bg-white border border-charcoal-200 rounded-lg px-3.5 py-2.5 text-sm font-mono font-bold text-charcoal-900 tracking-wider shadow-subtle focus:outline-none focus:ring-2 focus:ring-accent-electric/40 focus:border-accent-electric uppercase"
             />

@@ -22,6 +22,7 @@ interface RoomHeaderProps {
   onEnd: () => void;
   onDelete: () => void;
   onLeave: () => void;
+  onOpenSummary?: () => void;
 }
 
 export const RoomHeader: React.FC<RoomHeaderProps> = ({
@@ -32,6 +33,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
   onEnd,
   onDelete,
   onLeave,
+  onOpenSummary,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -135,7 +137,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
           )}
 
           {/* End Conversation Button */}
-          {room.status !== 'ended' && (
+          {room.status !== 'ended' ? (
             <button
               onClick={onEnd}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
@@ -143,6 +145,21 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
               <PhoneOff className="w-3.5 h-3.5" />
               <span>End & Summarize</span>
             </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-charcoal-500 bg-charcoal-100 px-2.5 py-1 rounded-md border border-charcoal-200">
+                Concluded
+              </span>
+              {onOpenSummary && (
+                <button
+                  onClick={onOpenSummary}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-accent-teal bg-accent-tealLight hover:bg-accent-tealLight/80 border border-accent-teal/30 transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>View Summary</span>
+                </button>
+              )}
+            </div>
           )}
 
           {/* Delete Conversation Button */}

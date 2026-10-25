@@ -60,6 +60,7 @@ export function App() {
   // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [initialRoomCode, setInitialRoomCode] = useState('');
   const [selectedCorrectionTurn, setSelectedCorrectionTurn] =
     useState<TurnMessage | null>(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
@@ -79,6 +80,7 @@ export function App() {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
     if (roomParam && !roomState) {
+      setInitialRoomCode(roomParam.trim().toUpperCase());
       setIsJoinModalOpen(true);
     }
   }, [roomState]);
@@ -219,6 +221,7 @@ export function App() {
           onResume={resumeConversation}
           onEnd={endConversation}
           onDelete={deleteConversation}
+          onOpenSummary={() => setShowSummaryModal(true)}
           onLeave={() => {
             leaveRoom();
             setView('landing');
@@ -348,6 +351,7 @@ export function App() {
 
       <JoinRoomModal
         isOpen={isJoinModalOpen}
+        initialRoomCode={initialRoomCode}
         onClose={() => setIsJoinModalOpen(false)}
         onJoinRoom={async (code, name, lang) => {
           await joinRoom(code, name, lang);

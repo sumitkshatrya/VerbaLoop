@@ -91,14 +91,47 @@ export class TurnManager {
     const room = await this.storage.getRoom(roomCode);
     if (!room) throw new Error('Room not found');
 
-    const turn = room.turns.find((t) => t.turnId === turnId);
-    if (!turn) throw new Error('Turn not found');
+    const cleanText = (originalText || '').trim();
+
+    let turn = room.turns.find((t) => t.turnId === turnId);
+    if (!turn) {
+      console.warn(
+        `[TurnManager] Turn ${turnId} not found in room ${roomCode}. Initializing turn on-the-fly.`
+      );
+      const speaker = room.participants.find((p) => p.id === speakerId) || room.participants[0];
+      const receiver = room.participants.find((p) => p.id !== speakerId);
+      const targetLanguage: SupportedLanguageCode = receiver
+        ? receiver.language
+        : speaker?.language === 'en'
+        ? 'zh'
+        : 'en';
+
+      turn = {
+        turnId,
+        roomCode,
+        speakerId: speaker?.id || speakerId,
+        speakerName: speaker?.name || 'Participant',
+        speakerLanguage: speaker?.language || 'en',
+        originalText: cleanText,
+        translatedText: '',
+        targetLanguage,
+        status: 'speaking',
+        isPartial: false,
+        isInterrupted: false,
+        createdAt: Date.now(),
+      };
+      room.turns.push(turn);
+      await this.storage.addTurn(roomCode, turn);
+    }
 
     if (turn.isInterrupted) {
       return { turn, isInterrupted: true };
     }
 
-    const cleanText = (originalText || '').trim();
+    if (turn.status === 'completed' && turn.translatedText) {
+      return { turn, isInterrupted: false };
+    }
+
     if (!cleanText) {
       // Cleanly cancel empty turn so no blank ghost bubbles enter the room
       turn.status = 'cancelled';

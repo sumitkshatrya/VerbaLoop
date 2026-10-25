@@ -78,7 +78,42 @@ export class RoomManager {
     }
 
     if (room.status === 'ended') {
-      throw new Error(`Room ${normalizedCode} has already concluded.`);
+      // Allow participant to rejoin or review concluded conversation without throwing fatal error
+      const existing = room.participants.find(
+        (p) => p.name.toLowerCase() === participantName.toLowerCase().trim()
+      );
+      let participant: Participant;
+      if (existing) {
+        existing.socketId = socketId;
+        existing.language = participantLanguage;
+        participant = existing;
+      } else {
+        participant = {
+          id: this.generateParticipantId(),
+          name: participantName.trim(),
+          language: participantLanguage,
+          isHost: false,
+          isReady: false,
+          isAudioReady: false,
+          socketId,
+          isSpeaking: false,
+          isListening: false,
+          joinedAt: Date.now(),
+        };
+        if (room.participants.length < 2) {
+          room.participants.push(participant);
+          await this.storage.updateRoom(normalizedCode, {
+            participants: room.participants,
+          });
+        }
+      }
+
+      this.activeSockets.set(socketId, {
+        roomCode: normalizedCode,
+        participantId: participant.id,
+      });
+
+      return { room, participant };
     }
 
     // Check if participant is reconnecting

@@ -163,10 +163,14 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
                   className="text-sm font-medium text-charcoal-800 leading-relaxed"
                   dir={targetLangDef.direction}
                 >
-                  {turn.status === 'translating' ? (
+                  {turn.status === 'translating' && !turn.isInterrupted ? (
                     <span className="text-xs text-amber-700 italic flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-spin" />
                       [Translating in real time...]
+                    </span>
+                  ) : turn.isInterrupted && !turn.translatedText ? (
+                    <span className="text-xs text-rose-600 italic">
+                      [Speech interrupted before translation completed]
                     </span>
                   ) : (
                     turn.translatedText || (

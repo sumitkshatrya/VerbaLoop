@@ -186,8 +186,10 @@ export function setupSocketHandlers(
           payload.originalText
         );
 
-        if (!isInterrupted) {
-          io.to(payload.roomCode).emit(SOCKET_EVENTS.TRANSLATION_COMPLETE, turn);
+        if (!isInterrupted && turn) {
+          if (turn.status === 'completed') {
+            io.to(payload.roomCode).emit(SOCKET_EVENTS.TRANSLATION_COMPLETE, turn);
+          }
           const room = await storage.getRoom(payload.roomCode);
           if (room) {
             io.to(payload.roomCode).emit(SOCKET_EVENTS.ROOM_STATE, room);

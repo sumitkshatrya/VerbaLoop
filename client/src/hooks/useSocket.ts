@@ -81,6 +81,18 @@ export function useSocket() {
       soundEffects.playTurnComplete();
       setStreamingTurn(null);
       setLastCompletedTurn(turn);
+      setRoomState((prev) => {
+        if (!prev) return null;
+        const exists = prev.turns.some((t) => t.turnId === turn.turnId);
+        const updatedTurns = exists
+          ? prev.turns.map((t) => (t.turnId === turn.turnId ? turn : t))
+          : [...prev.turns, turn];
+        return {
+          ...prev,
+          turns: updatedTurns,
+          activeTurnId: prev.activeTurnId === turn.turnId ? null : prev.activeTurnId,
+        };
+      });
     });
 
     // Interruption event from peer
@@ -91,6 +103,30 @@ export function useSocket() {
         turnId: data.turnId,
         interruptedBy: data.interruptedBy,
         timestamp: Date.now(),
+      });
+      setRoomState((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          activeTurnId: null,
+          turns: prev.turns.map((t) =>
+            t.turnId === data.turnId
+              ? { ...t, status: 'interrupted', isInterrupted: true }
+              : t
+          ),
+        };
+      });
+    });
+
+    socket.on(SOCKET_EVENTS.TURN_CANCEL, (data: any) => {
+      setStreamingTurn(null);
+      setRoomState((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          activeTurnId: prev.activeTurnId === data.turnId ? null : prev.activeTurnId,
+          turns: prev.turns.filter((t) => t.turnId !== data.turnId),
+        };
       });
     });
 

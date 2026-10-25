@@ -156,6 +156,34 @@ ${transcript}`;
 
     try {
       const parsed = JSON.parse(jsonText);
+
+      // Normalize participant IDs in LLM response to match actual room participant IDs
+      const normalizedChangesOfMind = (parsed.changesOfMind || []).map((c: any) => {
+        const matched = room.participants.find(
+          (p) =>
+            p.id === c.participantId ||
+            p.name.toLowerCase() === (c.participantName || c.participantId || '').toLowerCase()
+        );
+        return {
+          participantId: matched ? matched.id : c.participantId,
+          participantName: matched ? matched.name : c.participantName,
+          description: c.description || {},
+        };
+      });
+
+      const normalizedPositions = (parsed.participantPositions || []).map((pos: any) => {
+        const matched = room.participants.find(
+          (p) =>
+            p.id === pos.participantId ||
+            p.name.toLowerCase() === (pos.participantName || pos.participantId || '').toLowerCase()
+        );
+        return {
+          participantId: matched ? matched.id : pos.participantId,
+          participantName: matched ? matched.name : pos.participantName,
+          positions: pos.positions || {},
+        };
+      });
+
       return {
         roomCode: room.roomCode,
         generatedAt: Date.now(),
@@ -163,10 +191,10 @@ ${transcript}`;
         totalTurns,
         interruptedTurns,
         mainDisagreement: parsed.mainDisagreement || {},
-        participantPositions: parsed.participantPositions || [],
+        participantPositions: normalizedPositions,
         pointsOfAgreement: parsed.pointsOfAgreement || {},
         unresolvedQuestions: parsed.unresolvedQuestions || {},
-        changesOfMind: parsed.changesOfMind || [],
+        changesOfMind: normalizedChangesOfMind,
       };
     } catch {
       return null;
