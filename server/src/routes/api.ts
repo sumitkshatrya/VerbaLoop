@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { IStorageRepository } from '../services/storage/types';
 import { translationService } from '../services/ai/translationService';
 import { conversationSummaryService } from '../services/summary/summaryService';
+import { trafficController } from '../services/traffic/trafficController';
+import { redisService } from '../services/redis/redisClient';
 import { SupportedLanguageCodeSchema } from '@verbaloop/shared';
 import { z } from 'zod';
 import { config } from '../config/env';
@@ -16,9 +18,23 @@ export function createApiRouter(storage: IStorageRepository): Router {
       app: 'VerbaLoop',
       timestamp: Date.now(),
       storage: storage.getStorageType(),
+      redis: {
+        connected: redisService.isReady(),
+        mode: redisService.isReady() ? 'redis' : 'in-memory',
+      },
+      traffic: trafficController.getMetrics(),
       translationProvider: config.translationProvider,
       hasGeminiKey: Boolean(config.geminiApiKey),
       hasOpenAIKey: Boolean(config.openaiApiKey),
+    });
+  });
+
+  // 2. Traffic and rate-limiting metrics
+  router.get('/traffic', (req: Request, res: Response) => {
+    res.json({
+      status: 'ok',
+      timestamp: Date.now(),
+      metrics: trafficController.getMetrics(),
     });
   });
 

@@ -20,6 +20,7 @@ import { RoomManager } from './roomManager';
 import { TurnManager } from './turnManager';
 import { IStorageRepository } from '../services/storage/types';
 import { conversationSummaryService } from '../services/summary/summaryService';
+import { trafficController } from '../services/traffic/trafficController';
 
 export function setupSocketHandlers(
   io: SocketIOServer,
@@ -27,6 +28,17 @@ export function setupSocketHandlers(
 ) {
   const roomManager = new RoomManager(storage);
   const turnManager = new TurnManager(storage);
+
+  // Traffic Controller: Connection rate limiter middleware
+  io.use(async (socket, next) => {
+    const clientIp = socket.handshake.address || 'unknown';
+    const limit = await trafficController.checkConnectionLimit(clientIp);
+    if (!limit.allowed) {
+      console.warn(`🛑 [TrafficController] Connection flood detected from IP: ${clientIp}`);
+      return next(new Error('Connection rate limit exceeded. Please wait a moment.'));
+    }
+    next();
+  });
 
   io.on('connection', (socket: Socket) => {
     // 1. ROOM CREATE
@@ -105,6 +117,20 @@ export function setupSocketHandlers(
     socket.on(SOCKET_EVENTS.TURN_START, async (rawPayload) => {
       try {
         const payload = TurnStartSchema.parse(rawPayload);
+
+        // Traffic Control: enforce turn limit per participant
+        const limit = await trafficController.checkTurnLimit(
+          payload.speakerId,
+          payload.roomCode
+        );
+        if (!limit.allowed) {
+          socket.emit(SOCKET_EVENTS.ERROR, {
+            error: `Turn frequency limit reached (${limit.limit}/min). Please wait a few seconds before speaking.`,
+            isThrottled: true,
+          });
+          return;
+        }
+
         const { room, turn } = await turnManager.startTurn(
           payload.roomCode,
           payload.turnId,
@@ -142,6 +168,17 @@ export function setupSocketHandlers(
     socket.on(SOCKET_EVENTS.TURN_COMPLETE, async (rawPayload) => {
       try {
         const payload = TurnCompleteSchema.parse(rawPayload);
+
+        // Traffic Control: enforce room translation rate limit
+        const limit = await trafficController.checkTranslationLimit(payload.roomCode);
+        if (!limit.allowed) {
+          socket.emit(SOCKET_EVENTS.ERROR, {
+            error: `Translation rate limit reached for this room (${limit.limit}/min). Please pause briefly.`,
+            isThrottled: true,
+          });
+          return;
+        }
+
         const { turn, isInterrupted } = await turnManager.completeTurn(
           payload.roomCode,
           payload.turnId,
