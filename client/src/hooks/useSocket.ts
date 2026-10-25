@@ -28,12 +28,20 @@ export function useSocket() {
   const [lastInterruption, setLastInterruption] = useState<InterruptionEvent | null>(null);
 
   useEffect(() => {
-    // Determine socket target based on environment
+    // Determine socket target based on environment:
+    // 1. Explicit VITE_BACKEND_URL (from client/.env or build env)
+    // 2. Localhost development fallback (http://localhost:5000)
+    // 3. Render production live backend URL (https://verbaloop-api.onrender.com)
+    const envBackendUrl = (import.meta as any).env?.VITE_BACKEND_URL;
+    const isLocalhost =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.origin.includes('5173'));
+
     const socketUrl =
-      (import.meta as any).env?.VITE_BACKEND_URL ||
-      (typeof window !== 'undefined' && window.location.origin.includes('5173')
-        ? 'http://localhost:5000'
-        : window.location.origin);
+      envBackendUrl ||
+      (isLocalhost ? 'http://localhost:5000' : 'https://verbaloop-api.onrender.com');
 
     const socket = io(socketUrl, {
       reconnectionAttempts: 8,

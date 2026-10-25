@@ -6,7 +6,7 @@ import { getStorageRepository } from './services/storage';
 import { setupSocketHandlers } from './socket/socketHandler';
 import { redisService } from './services/redis/redisClient';
 import { trafficController } from './services/traffic/trafficController';
-import { config } from './config/env';
+import { config, isOriginAllowed } from './config/env';
 
 async function bootstrap() {
   const storage = await getStorageRepository();
@@ -32,7 +32,13 @@ async function bootstrap() {
 
   const io = new SocketIOServer(httpServer, {
     cors: {
-      origin: [config.corsOrigin, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS blocked for origin: ${origin}`), false);
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true,
     },

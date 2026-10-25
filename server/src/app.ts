@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { IStorageRepository } from './services/storage/types';
 import { createApiRouter } from './routes/api';
-import { config } from './config/env';
+import { config, isOriginAllowed } from './config/env';
 
 export function createApp(storage: IStorageRepository): Express {
   const app = express();
@@ -17,10 +17,16 @@ export function createApp(storage: IStorageRepository): Express {
     })
   );
 
-  // CORS configuration
+  // Dynamic CORS configuration supporting local dev and live client URLs
   app.use(
     cors({
-      origin: [config.corsOrigin, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS blocked for origin: ${origin}`));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     })

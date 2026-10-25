@@ -13,6 +13,7 @@ export interface ServerConfig {
   port: number;
   nodeEnv: string;
   corsOrigin: string;
+  allowedOrigins: string[];
   mongoUri: string;
   redisUrl?: string;
   redisHost?: string;
@@ -39,10 +40,41 @@ if (geminiKey) {
   detectedProvider = 'mymemory';
 }
 
+const rawCors =
+  process.env.CORS_ORIGIN ||
+  'https://verbaloop-4a0z.onrender.com,http://localhost:5173';
+const parsedCors = rawCors
+  .split(',')
+  .map((s) => s.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+export const allowedOrigins: string[] = Array.from(
+  new Set([
+    'https://verbaloop-4a0z.onrender.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://localhost:5000',
+    ...parsedCors,
+  ])
+);
+
+export function isOriginAllowed(origin: string | undefined): boolean {
+  if (!origin) return true; // allow non-browser clients, health checks, server-to-server
+  const cleanOrigin = origin.trim().replace(/\/+$/, '');
+  return (
+    allowedOrigins.includes(cleanOrigin) ||
+    cleanOrigin.endsWith('.onrender.com') ||
+    cleanOrigin.includes('localhost') ||
+    cleanOrigin.includes('127.0.0.1')
+  );
+}
+
 export const config: ServerConfig = {
   port: parseInt(process.env.PORT || '5000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  corsOrigin: rawCors,
+  allowedOrigins,
   mongoUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/verbaloop',
   redisUrl: process.env.REDIS_URL,
   redisHost: process.env.REDIS_HOST,
