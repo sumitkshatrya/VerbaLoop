@@ -38,7 +38,7 @@ export const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
     e.preventDefault();
     const cleanCode = sanitizeRoomCode(roomCode);
     if (!cleanCode) {
-      setError('Please enter a valid room code (e.g. LOOP-XXXX)');
+      setError('Please enter a valid room code (e.g. LOOP-XXXX) or paste a complete invite link');
       return;
     }
     if (!participantName.trim()) {
@@ -92,21 +92,24 @@ export const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-charcoal-700 uppercase tracking-wide mb-1.5">
-                Room Code
+                Room Code or Full Invite Link
               </label>
               <input
                 type="text"
                 required
-                maxLength={16}
+                maxLength={256}
                 value={roomCode}
                 onChange={(e) => {
                   const val = e.target.value;
                   const sanitized = sanitizeRoomCode(val);
                   setRoomCode(sanitized || val.toUpperCase());
                 }}
-                placeholder="e.g. LOOP-7X9K"
+                placeholder="e.g. LOOP-7X9K or paste full invite URL"
                 className="w-full bg-white border border-charcoal-200 rounded-lg px-3.5 py-2.5 text-sm font-mono font-bold text-charcoal-900 tracking-wider shadow-subtle focus:outline-none focus:ring-2 focus:ring-accent-electric/40 focus:border-accent-electric uppercase"
               />
+              <p className="text-[11px] text-charcoal-500 mt-1">
+                Enter your 8-character code or paste the complete invite address.
+              </p>
             </div>
 
             <div>

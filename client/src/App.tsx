@@ -21,7 +21,7 @@ import { InterruptionBanner } from './components/room/InterruptionBanner';
 import { CorrectionModal } from './components/room/CorrectionModal';
 import { EndSummaryModal } from './components/room/EndSummaryModal';
 import { DemoRoom } from './components/demo/DemoRoom';
-import { TurnMessage, SupportedLanguageCode } from '@verbaloop/shared';
+import { TurnMessage, SupportedLanguageCode, sanitizeRoomCode } from '@verbaloop/shared';
 
 export function App() {
   const {
@@ -68,10 +68,23 @@ export function App() {
   // Active turn ID being spoken by current user
   const [activeVoiceTurnId, setActiveVoiceTurnId] = useState<string | null>(null);
 
-  // Auto-switch to 'room' view if roomState is populated
+  // Auto-switch to 'room' view if roomState is populated and keep browser address bar in sync
   useEffect(() => {
-    if (roomState && currentParticipant) {
+    if (roomState && currentParticipant && roomState.roomCode) {
       setView('room');
+      // Update browser URL address bar to full link (e.g. https://verbaloop-4a0z.onrender.com?room=LOOP-Q3T6)
+      const currentUrl = new URL(window.location.href);
+      if (currentUrl.searchParams.get('room') !== roomState.roomCode) {
+        currentUrl.searchParams.set('room', roomState.roomCode);
+        window.history.replaceState({ roomCode: roomState.roomCode }, '', currentUrl.toString());
+      }
+    } else if (!roomState) {
+      // When leaving room, clean up URL query params so ?room= isn't left empty in the address bar
+      const currentUrl = new URL(window.location.href);
+      if (currentUrl.searchParams.has('room')) {
+        currentUrl.searchParams.delete('room');
+        window.history.replaceState(null, '', currentUrl.pathname + currentUrl.hash);
+      }
     }
   }, [roomState, currentParticipant]);
 
@@ -79,9 +92,17 @@ export function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
-    if (roomParam && !roomState) {
-      setInitialRoomCode(roomParam.trim().toUpperCase());
+    const sanitized = roomParam ? sanitizeRoomCode(roomParam) : '';
+    if (sanitized && !roomState) {
+      setInitialRoomCode(sanitized);
       setIsJoinModalOpen(true);
+    } else if (roomParam === '' || roomParam === null) {
+      // If ?room= is empty, clean it up from browser URL address bar
+      if (window.location.search.includes('room=')) {
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('room');
+        window.history.replaceState(null, '', cleanUrl.pathname + cleanUrl.hash);
+      }
     }
   }, [roomState]);
 

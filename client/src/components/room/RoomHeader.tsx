@@ -37,8 +37,12 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const pathname = typeof window !== 'undefined' ? window.location.pathname.replace(/\/$/, '') : '';
+  const inviteUrl = room.roomCode ? `${origin}${pathname}?room=${room.roomCode}` : '';
+
   const handleCopyLink = async () => {
-    const inviteUrl = `${window.location.origin}?room=${room.roomCode}`;
+    if (!inviteUrl) return;
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(inviteUrl);
@@ -84,28 +88,53 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 
           <div className="h-5 w-px bg-charcoal-200 hidden sm:block" />
 
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-canvas px-2.5 py-1 rounded-lg border border-charcoal-200">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {/* Room Code Badge */}
+            <div className="flex items-center gap-1.5 bg-canvas px-2.5 py-1 rounded-lg border border-charcoal-200 shrink-0">
+              <span className="text-[10px] font-bold uppercase text-charcoal-500">Room</span>
               <span className="text-xs font-mono font-bold text-charcoal-900 tracking-wider">
                 {room.roomCode}
               </span>
-              <button
-                onClick={handleCopyLink}
-                className="p-1 rounded text-charcoal-500 hover:text-accent-teal hover:bg-white transition-colors"
-                title="Copy shareable room invitation link"
-                aria-label="Copy invitation link"
-              >
-                {copied ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-              </button>
             </div>
+
+            {/* Full Shareable Invite Address */}
+            {inviteUrl && (
+              <div className="flex items-center gap-1.5 bg-canvas-subtle pl-2.5 pr-1 py-0.5 rounded-lg border border-charcoal-200 max-w-[210px] sm:max-w-xs md:max-w-sm">
+                <span
+                  className="text-[11px] font-mono text-charcoal-700 truncate select-all cursor-pointer"
+                  onClick={handleCopyLink}
+                  title={`Click to copy: ${inviteUrl}`}
+                >
+                  {inviteUrl}
+                </span>
+                <button
+                  onClick={handleCopyLink}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all shrink-0 ${
+                    copied
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-white text-charcoal-700 hover:text-accent-teal hover:bg-canvas border border-charcoal-200 shadow-xs'
+                  }`}
+                  title="Copy full invite link"
+                  aria-label="Copy invitation link"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-bold">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span className="text-[10px] hidden sm:inline">Copy Link</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Participant Status */}
             <span
-              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border ${
+              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md border shrink-0 ${
                 room.participants.length === 2
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                   : 'bg-amber-50 text-amber-800 border-amber-200'
