@@ -135,3 +135,4 @@ export const JoinRoomModal: React.FC<JoinRoomModalProps> = ({
     </div>
   );
 };
+

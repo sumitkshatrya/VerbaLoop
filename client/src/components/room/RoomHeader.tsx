@@ -149,3 +149,4 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
     </header>
   );
 };
+

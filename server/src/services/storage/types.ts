@@ -20,3 +20,4 @@ export interface IStorageRepository {
   deleteRoom(roomCode: string): Promise<boolean>;
   getStorageType(): 'mongodb' | 'in-memory';
 }
+

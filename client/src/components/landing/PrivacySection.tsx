@@ -72,3 +72,4 @@ export const PrivacySection: React.FC = () => {
     </section>
   );
 };
+

@@ -91,3 +91,4 @@ export interface RoomState {
   createdAt: number;
   updatedAt: number;
 }
+

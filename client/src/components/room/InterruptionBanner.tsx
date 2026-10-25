@@ -43,3 +43,4 @@ export const InterruptionBanner: React.FC<InterruptionBannerProps> = ({
     </div>
   );
 };
+

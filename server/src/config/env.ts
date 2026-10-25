@@ -38,3 +38,4 @@ export const config: ServerConfig = {
   translationProvider:
     (process.env.TRANSLATION_PROVIDER as any) || detectedProvider,
 };
+

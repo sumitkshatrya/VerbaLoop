@@ -100,3 +100,4 @@ describe('ConversationSummaryService', () => {
     expect(summary.changesOfMind[0].participantName).toBe('Arjun');
   });
 });
+

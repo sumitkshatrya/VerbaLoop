@@ -112,22 +112,81 @@ All real-time events are typed and validated with strict **Zod** schemas:
 
 ---
 
-## 5. Supported Languages
+## 5. Supported Languages & Capability Matrix
 
-VerbaLoop supports 10 global languages out of the box:
+VerbaLoop supports **all 22 languages listed in the Eighth Schedule of the Indian Constitution**, plus **English** (as an additional official bridge language) and **8 International Languages** (total 31 languages).
 
-| Language | Code | Native Script | Speech Code | Sample Conversational Interjection |
-| :--- | :--- | :--- | :--- | :--- |
-| **English** | `en` | English | `en-US` | "Wait, let me finish." |
-| **Hindi** | `hi` | हिन्दी | `hi-IN` | "रुकिए, मुझे अपनी बात पूरी करने दीजिए।" |
-| **Mandarin Chinese** | `zh` | 中文 (普通话) | `zh-CN` | "等等，让我先把话说完。" |
-| **Spanish** | `es` | Español | `es-ES` | "Espera, déjame terminar." |
-| **French** | `fr` | Français | `fr-FR` | "Attends, laisse-moi finir." |
-| **Arabic** | `ar` | العربية | `ar-SA` | "انتظر، دعني أكمل حديثي." |
-| **Japanese** | `ja` | 日本語 | `ja-JP` | "待ってください、最後まで言わせてください。" |
-| **German** | `de` | Deutsch | `de-DE` | "Warte, lass mich ausreden." |
-| **Portuguese** | `pt` | Português | `pt-BR` | "Espere, deixe-me terminar." |
-| **Russian** | `ru` | Русский | `ru-RU` | "Подождите, дайте мне закончить." |
+Capabilities are maintained independently:
+- **Text Translation**: Neural translation preserving tone, directness, and argument conviction without dilution.
+- **Speech Recognition (STT)**: Browser Web Speech API (`webkitSpeechRecognition`) where available; falls back gracefully to direct text mode.
+- **Speech Synthesis (TTS)**: Web Speech Synthesis (`speechSynthesis`) with immediate sub-80ms cancellation on interruption.
+
+### 1. Eighth Schedule Indian Languages (22 Constitutional Languages)
+
+| # | Language | Code | Native Script | Direction | Speech Code | Text Translation | Speech Input (STT) | Speech Output (TTS) | Browser Voice Support Notes |
+| :- | :--- | :--- | :--- | :---: | :--- | :---: | :---: | :---: | :--- |
+| 1 | **Hindi** | `hi` | हिन्दी | LTR | `hi-IN` | ✅ | ✅ | ✅ | Standard in Chrome, Edge, Android, Safari |
+| 2 | **Bengali** | `bn` | বাংলা | LTR | `bn-IN` | ✅ | ✅ | ✅ | Standard in major browser speech engines |
+| 3 | **Marathi** | `mr` | मराठी | LTR | `mr-IN` | ✅ | ✅ | ✅ | Standard in major browser speech engines |
+| 4 | **Telugu** | `te` | తెలుగు | LTR | `te-IN` | ✅ | ✅ | ✅ | Standard in Chromium & mobile runtimes |
+| 5 | **Tamil** | `ta` | தமிழ் | LTR | `ta-IN` | ✅ | ✅ | ✅ | Standard in major browser speech engines |
+| 6 | **Gujarati** | `gu` | ગુજરાતી | LTR | `gu-IN` | ✅ | ✅ | ✅ | Standard in Chromium & mobile runtimes |
+| 7 | **Urdu** | `ur` | اردو | **RTL** | `ur-IN` | ✅ | ✅ | ✅ | Full RTL layout + standard speech support |
+| 8 | **Kannada** | `kn` | ಕನ್ನಡ | LTR | `kn-IN` | ✅ | ✅ | ✅ | Standard in Chromium & mobile runtimes |
+| 9 | **Odia** | `or` | ଓଡ଼ିଆ | LTR | `or-IN` | ✅ | ⚠️ | ⚠️ | Full text translation; OS voice pack dependent |
+| 10 | **Malayalam** | `ml` | മലയാളം | LTR | `ml-IN` | ✅ | ✅ | ✅ | Standard in major browser speech engines |
+| 11 | **Punjabi** | `pa` | ਪੰਜਾਬੀ | LTR | `pa-IN` | ✅ | ✅ | ✅ | Standard in Chromium & mobile runtimes |
+| 12 | **Assamese** | `as` | অসমীয়া | LTR | `as-IN` | ✅ | ⚠️ | ⚠️ | Full text translation; text mode active |
+| 13 | **Maithili** | `mai` | मैथिली | LTR | `mai-IN` | ✅ | ⚠️ | ⚠️ | Full text translation; text mode active |
+| 14 | **Sanskrit** | `sa` | संस्कृतम् | LTR | `sa-IN` | ✅ | ⚠️ | ⚠️ | Classical text translation; text mode active |
+| 15 | **Kashmiri** | `ks` | कॉशुर / كٲشُر | **RTL** | `ks-IN` | ✅ | ⚠️ | ⚠️ | RTL Nastaliq text translation active |
+| 16 | **Konkani** | `kok` | कोंकणी | LTR | `kok-IN` | ✅ | ⚠️ | ⚠️ | Full text translation; text mode active |
+| 17 | **Nepali** | `ne` | नेपाली | LTR | `ne-NP` | ✅ | ✅ | ✅ | Standard in Chromium & Android |
+| 18 | **Sindhi** | `sd` | سنڌي / सिन्धी | **RTL** | `sd-IN` | ✅ | ⚠️ | ⚠️ | RTL Perso-Arabic text translation active |
+| 19 | **Dogri** | `doi` | डोगरी | LTR | `doi-IN` | ✅ | ⚠️ | ⚠️ | Full text translation; text mode active |
+| 20 | **Manipuri** | `mni` | মেইতেইলোন | LTR | `mni-IN` | ✅ | ⚠️ | ⚠️ | Full text translation; text mode active |
+| 21 | **Bodo** | `brx` | बड़ो | LTR | `brx-IN` | ✅ | ⚠️ | ⚠️ | Full text translation; text mode active |
+| 22 | **Santali** | `sat` | ᱥᱟᱱᱛᱟᱲᱤ | LTR | `sat-IN` | ✅ | ⚠️ | ⚠️ | Ol Chiki / Devanagari text translation active |
+
+### 2. Additional Official & Bridge Language
+
+| # | Language | Code | Native Script | Direction | Speech Code | Text Translation | Speech Input (STT) | Speech Output (TTS) | Notes |
+| :- | :--- | :--- | :--- | :---: | :--- | :---: | :---: | :---: | :--- |
+| 23 | **English** | `en` | English | LTR | `en-US` | ✅ | ✅ | ✅ | Universal browser voice support |
+
+### 3. International Languages
+
+| # | Language | Code | Native Script | Direction | Speech Code | Text Translation | Speech Input (STT) | Speech Output (TTS) |
+| :- | :--- | :--- | :--- | :---: | :--- | :---: | :---: | :---: |
+| 24 | **Mandarin Chinese** | `zh` | 中文 (普通话) | LTR | `zh-CN` | ✅ | ✅ | ✅ |
+| 25 | **Spanish** | `es` | Español | LTR | `es-ES` | ✅ | ✅ | ✅ |
+| 26 | **French** | `fr` | Français | LTR | `fr-FR` | ✅ | ✅ | ✅ |
+| 27 | **Arabic** | `ar` | العربية | **RTL** | `ar-SA` | ✅ | ✅ | ✅ |
+| 28 | **Japanese** | `ja` | 日本語 | LTR | `ja-JP` | ✅ | ✅ | ✅ |
+| 29 | **German** | `de` | Deutsch | LTR | `de-DE` | ✅ | ✅ | ✅ |
+| 30 | **Portuguese** | `pt` | Português | LTR | `pt-BR` | ✅ | ✅ | ✅ |
+| 31 | **Russian** | `ru` | Русский | LTR | `ru-RU` | ✅ | ✅ | ✅ |
+
+### How to Add a New Language
+
+1. **Add Language Definition**: In `shared/languages.ts`, add the language entry to `SUPPORTED_LANGUAGES`:
+   ```ts
+   {
+     code: 'your_code',
+     name: 'Language Name',
+     nativeName: 'Native Script Label',
+     flag: '🏳️',
+     speechCode: 'code-REGION',
+     direction: 'ltr', // or 'rtl'
+     script: 'Script Name',
+     group: 'indian_scheduled', // or 'international'
+     capabilities: { textTranslation: true, speechRecognition: true, speechSynthesis: true },
+     sampleGreeting: 'Sample greeting in native script',
+   }
+   ```
+2. **Update Zod Validation**: In `shared/events.ts`, add the code to `SupportedLanguageCodeSchema`.
+3. **Add Conversational Interjections**: (Optional) In `server/src/services/ai/translationService.ts`, add instant-fallback interjections to `CONVERSATIONAL_DICTIONARY`.
+4. **Compile & Test**: Run `npm test` to verify end-to-end integration across storage, turn coordination, and UI.
 
 ---
 
@@ -307,3 +366,4 @@ CMD ["node", "server/dist/server.js"]
 ## 13. License
 
 MIT © VerbaLoop Team. Different languages. One conversation.
+

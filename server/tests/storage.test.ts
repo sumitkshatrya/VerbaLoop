@@ -99,3 +99,4 @@ describe('InMemoryStorage Repository', () => {
     expect(await storage.getRoom('LOOP-DEL')).toBeNull();
   });
 });
+

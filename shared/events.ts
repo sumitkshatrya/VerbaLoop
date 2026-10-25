@@ -1,8 +1,32 @@
 import { z } from 'zod';
 
 export const SupportedLanguageCodeSchema = z.enum([
+  // 22 Eighth Schedule Indian Languages
   'hi',
+  'bn',
+  'mr',
+  'te',
+  'ta',
+  'gu',
+  'ur',
+  'kn',
+  'or',
+  'ml',
+  'pa',
+  'as',
+  'mai',
+  'sa',
+  'ks',
+  'kok',
+  'ne',
+  'sd',
+  'doi',
+  'mni',
+  'brx',
+  'sat',
+  // Additional Official Language
   'en',
+  // International Languages
   'zh',
   'es',
   'fr',
@@ -165,3 +189,4 @@ export const SOCKET_EVENTS = {
   ROOM_STATE: 'room:state',
   ERROR: 'error:event',
 } as const;
+

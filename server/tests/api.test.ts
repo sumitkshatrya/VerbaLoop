@@ -45,17 +45,41 @@ describe('HTTP API Endpoints', () => {
     expect(res.body.topic).toBe('API Test Topic');
   });
 
-  it('POST /api/translate performs translation with validation', async () => {
+  it('POST /api/translate performs translation for Indian languages', async () => {
     const res = await request(app)
       .post('/api/translate')
       .send({
         text: 'I disagree with you',
         sourceLang: 'en',
-        targetLang: 'hi',
+        targetLang: 'ta',
       });
 
     expect(res.status).toBe(200);
-    expect(res.body.translatedText).toBe('मैं आपसे असहमत हूँ।');
+    expect(res.body.translatedText).toContain('உடன்படவில்லை');
+
+    // Bengali
+    const resBn = await request(app)
+      .post('/api/translate')
+      .send({
+        text: 'I disagree with you',
+        sourceLang: 'en',
+        targetLang: 'bn',
+      });
+    expect(resBn.status).toBe(200);
+    expect(resBn.body.translatedText).toContain('একমত');
+  });
+
+  it('rejects unsupported/invalid language codes in POST /api/translate', async () => {
+    const res = await request(app)
+      .post('/api/translate')
+      .send({
+        text: 'Hello',
+        sourceLang: 'en',
+        targetLang: 'invalid_code',
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBeDefined();
   });
 
   it('DELETE /api/rooms/:roomCode permanently deletes the conversation', async () => {
@@ -77,3 +101,4 @@ describe('HTTP API Endpoints', () => {
     expect(fetchRes.status).toBe(404);
   });
 });
+

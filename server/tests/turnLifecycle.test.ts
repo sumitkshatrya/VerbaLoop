@@ -107,4 +107,26 @@ describe('Turn Lifecycle & Real Interruption Handling', () => {
     expect(correctionRes.turn.correction?.originalCorrection).toBe('I disagree with you');
     expect(correctionRes.turn.correction?.translatedCorrection).toBeTruthy();
   });
+
+  it('supports Indian language pair: Hindi host and Tamil peer', async () => {
+    const indicHost = await roomManager.createRoom('Arjun', 'hi', 'sock_indic_host', 'National Infrastructure');
+    const indicPeer = await roomManager.joinRoom(indicHost.room.roomCode, 'Priya', 'ta', 'sock_indic_peer');
+
+    expect(indicHost.room.participants[0].language).toBe('hi');
+    expect(indicPeer.participant.language).toBe('ta');
+
+    const turnId = 'turn_indic_1';
+    const startRes = await turnManager.startTurn(indicHost.room.roomCode, turnId, indicHost.host.id, 'text');
+    expect(startRes.turn.targetLanguage).toBe('ta');
+
+    const completeRes = await turnManager.completeTurn(
+      indicHost.room.roomCode,
+      turnId,
+      indicHost.host.id,
+      'I disagree with you'
+    );
+    expect(completeRes.turn.targetLanguage).toBe('ta');
+    expect(completeRes.turn.translatedText).toContain('உடன்படவில்லை');
+  });
 });
+

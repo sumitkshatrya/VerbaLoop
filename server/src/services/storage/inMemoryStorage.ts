@@ -92,3 +92,4 @@ export class InMemoryStorage implements IStorageRepository {
     return this.rooms.delete(roomCode.toUpperCase());
   }
 }
+

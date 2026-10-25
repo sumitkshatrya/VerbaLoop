@@ -9,7 +9,7 @@ import {
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
-import { TurnMessage, Participant } from '@verbaloop/shared';
+import { TurnMessage, Participant, getLanguage } from '@verbaloop/shared';
 
 interface TurnControlsProps {
   currentParticipant: Participant;
@@ -42,6 +42,9 @@ export const TurnControls: React.FC<TurnControlsProps> = ({
 }) => {
   const [typedText, setTypedText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const langDef = getLanguage(currentParticipant.language);
+  const voiceSupported = langDef.capabilities.speechRecognition;
 
   // Can interrupt if peer is actively speaking or if audio is currently playing
   const isPeerSpeaking =
@@ -115,16 +118,29 @@ export const TurnControls: React.FC<TurnControlsProps> = ({
           {/* Push-to-Talk / Voice Toggle */}
           <button
             type="button"
-            disabled={!isRoomActive || isPaused}
+            disabled={!isRoomActive || isPaused || !voiceSupported}
             onClick={isListening ? onStopVoiceTurn : onStartVoiceTurn}
             className={`shrink-0 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 ${
-              isListening
+              !voiceSupported
+                ? 'bg-charcoal-100 text-charcoal-400 border border-charcoal-200 cursor-not-allowed opacity-60'
+                : isListening
                 ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-card animate-pulse ring-4 ring-rose-200'
                 : 'bg-accent-teal hover:bg-accent-tealHover text-white shadow-subtle'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
-            title={isListening ? 'Click to finish speaking' : 'Click to start speaking in your language'}
+            title={
+              !voiceSupported
+                ? `Voice input not standardized in browser for ${langDef.name}; use direct text mode.`
+                : isListening
+                ? 'Click to finish speaking'
+                : `Click to start speaking in ${langDef.name}`
+            }
           >
-            {isListening ? (
+            {!voiceSupported ? (
+              <>
+                <MicOff className="w-4 h-4 text-charcoal-400" />
+                <span className="hidden sm:inline">Text Mode</span>
+              </>
+            ) : isListening ? (
               <>
                 <MicOff className="w-4 h-4" />
                 <span className="hidden sm:inline">Speaking... (Finish)</span>
@@ -142,6 +158,7 @@ export const TurnControls: React.FC<TurnControlsProps> = ({
             <input
               ref={inputRef}
               type="text"
+              dir={langDef.direction}
               disabled={!isRoomActive || isPaused}
               value={typedText}
               onChange={(e) => setTypedText(e.target.value)}
@@ -150,7 +167,9 @@ export const TurnControls: React.FC<TurnControlsProps> = ({
                   ? 'Conversation is paused. Click Resume above to continue...'
                   : isListening
                   ? 'Speaking into microphone... or type here...'
-                  : `Type in ${currentParticipant.language} or speak with button...`
+                  : !voiceSupported
+                  ? `Type in ${langDef.name} (${langDef.nativeName}) — text mode active...`
+                  : `Type in ${langDef.name} (${langDef.nativeName}) or speak with button...`
               }
               className="flex-1 bg-canvas border border-charcoal-200 rounded-xl px-4 py-3 text-sm font-medium text-charcoal-900 shadow-inner focus:outline-none focus:ring-2 focus:ring-accent-teal/40 focus:border-accent-teal disabled:opacity-60 disabled:cursor-not-allowed"
             />
@@ -169,3 +188,4 @@ export const TurnControls: React.FC<TurnControlsProps> = ({
     </div>
   );
 };
+

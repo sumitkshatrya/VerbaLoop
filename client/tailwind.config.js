@@ -42,6 +42,18 @@ export default {
           'BlinkMacSystemFont',
           '"Segoe UI"',
           'Roboto',
+          '"Nirmala UI"',
+          '"Noto Sans"',
+          '"Noto Sans Devanagari"',
+          '"Noto Sans Bengali"',
+          '"Noto Sans Tamil"',
+          '"Noto Sans Telugu"',
+          '"Noto Sans Gujarati"',
+          '"Noto Sans Gurmukhi"',
+          '"Noto Sans Kannada"',
+          '"Noto Sans Malayalam"',
+          '"Noto Sans Oriya"',
+          '"Noto Nastaliq Urdu"',
           'sans-serif',
         ],
         mono: ['"JetBrains Mono"', 'monospace'],
@@ -55,3 +67,4 @@ export default {
   },
   plugins: [],
 }
+

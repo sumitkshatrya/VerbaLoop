@@ -235,6 +235,48 @@ ${transcript}`;
           'भविष्य में आने वाली प्राथमिकताओं का संतुलन कैसे साधा जाएगा?',
           'अंतिम निर्णय के लिए प्रमुख मेट्रिक्स क्या होने चाहिए?',
         ];
+      } else if (lang === 'bn') {
+        pointsOfAgreement[lang] = [
+          'উভয় পক্ষই খোলামেলা আলোচনা ও স্বচ্ছতার প্রয়োজনীয়তায় সম্মত হয়েছেন।',
+          'রিয়েল-টাইমে ভুল বোঝাবুঝি দূর করার গুরুত্ব স্বীকার করেছেন।',
+        ];
+        unresolvedQuestions[lang] = [
+          'ভবিষ্যতের অগ্রাধিকারের মধ্যে কীভাবে ভারসাম্য রক্ষা করা হবে?',
+          'চূড়ান্ত সিদ্ধান্তের মূল মেট্রিক কী হওয়া উচিত?',
+        ];
+      } else if (lang === 'ta') {
+        pointsOfAgreement[lang] = [
+          'இருவரும் வெளிப்படையான கருத்துப் பரிமாற்றத்தின் அவசியத்தை ஒப்புக்கொண்டனர்.',
+          'தவறான புரிதல்களை உடனுக்குடன் சரிசெய்வதன் முக்கியத்துவத்தை உணர்ந்தனர்.',
+        ];
+        unresolvedQuestions[lang] = [
+          'எதிர்கால முன்னுரிமைகளை எவ்வாறு சமநிலைப்படுத்துவது?',
+          'இறுதி முடிவிற்கான அளவுகோல்கள் எவை?',
+        ];
+      } else if (lang === 'te') {
+        pointsOfAgreement[lang] = [
+          'ఇరుపక్షాలు సూటిగా మరియు పారదర్శకంగా మాట్లాడటం ముఖ్యమని అంగీకరించాయి.',
+          'అపార్థాలను ఎప్పటికప్పుడు సరిదిద్దుకోవడానికి ప్రాధాన్యతనిచ్చాయి.',
+        ];
+        unresolvedQuestions[lang] = [
+          'భవిష్యత్తు లక్ష్యాల మధ్య సమతుల్యతను ఎలా సాధించాలి?',
+        ];
+      } else if (lang === 'mr') {
+        pointsOfAgreement[lang] = [
+          'दोन्ही सहभागींनी स्पष्ट आणि थेट संवादाच्या गरजेवर सहमती दर्शवली.',
+          'संवादातील गैरसमज त्वरित दूर करण्याचे महत्त्व मान्य केले.',
+        ];
+        unresolvedQuestions[lang] = [
+          'पुढील कृती योजना कशी निश्चित केली जाईल?',
+        ];
+      } else if (lang === 'ur') {
+        pointsOfAgreement[lang] = [
+          'دونوں شرکاء نے شفاف اور دو ٹوک گفتگو کی ضرورت پر اتفاق کیا۔',
+          'غلط فہمیوں کو فوری واضح کرنے کی اہمیت کو تسلیم کیا۔',
+        ];
+        unresolvedQuestions[lang] = [
+          'حتمی فیصلے کے بنیادی اصول کیا ہوں گے؟',
+        ];
       } else if (lang === 'zh') {
         pointsOfAgreement[lang] = [
           '双方一致同意坦诚沟通与快速澄清分歧的必要性。',
@@ -286,24 +328,9 @@ ${transcript}`;
     for (const lang of languages) {
       if (lang === 'en') {
         result[lang] = englishText;
-      } else if (lang === 'hi') {
-        result[lang] = `[हिन्दी]: ${englishText}`;
-      } else if (lang === 'zh') {
-        result[lang] = `[中文]: ${englishText}`;
-      } else if (lang === 'es') {
-        result[lang] = `[Español]: ${englishText}`;
-      } else if (lang === 'fr') {
-        result[lang] = `[Français]: ${englishText}`;
-      } else if (lang === 'ar') {
-        result[lang] = `[العربية]: ${englishText}`;
-      } else if (lang === 'ja') {
-        result[lang] = `[日本語]: ${englishText}`;
-      } else if (lang === 'de') {
-        result[lang] = `[Deutsch]: ${englishText}`;
-      } else if (lang === 'pt') {
-        result[lang] = `[Português]: ${englishText}`;
-      } else if (lang === 'ru') {
-        result[lang] = `[Русский]: ${englishText}`;
+      } else {
+        const langDef = getLanguage(lang);
+        result[lang] = `[${langDef.nativeName} (${langDef.name})]: ${englishText}`;
       }
     }
     return result;
@@ -311,3 +338,4 @@ ${transcript}`;
 }
 
 export const conversationSummaryService = new ConversationSummaryService();
+

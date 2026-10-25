@@ -32,3 +32,4 @@ export async function getStorageRepository(): Promise<IStorageRepository> {
 }
 
 export { IStorageRepository, InMemoryStorage, MongoStorage };
+

@@ -97,9 +97,16 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
               {/* Original Text */}
               <div className="mb-2.5 pb-2.5 border-b border-charcoal-100">
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-charcoal-400 font-semibold">
-                    Original ({speakerLangDef.name})
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-charcoal-400 font-semibold">
+                      Original ({speakerLangDef.name})
+                    </span>
+                    {speakerLangDef.direction === 'rtl' && (
+                      <span className="text-[9px] font-mono bg-amber-100 text-amber-800 px-1 rounded font-semibold">
+                        RTL
+                      </span>
+                    )}
+                  </div>
 
                   {isFromMe && !turn.isInterrupted && (
                     <button
@@ -112,7 +119,10 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
                     </button>
                   )}
                 </div>
-                <p className="text-sm font-semibold text-charcoal-900 leading-relaxed font-sans">
+                <p
+                  className="text-sm font-semibold text-charcoal-900 leading-relaxed font-sans"
+                  dir={speakerLangDef.direction}
+                >
                   {turn.originalText}
                 </p>
               </div>
@@ -120,9 +130,16 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
               {/* Translated Text */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-accent-teal font-semibold">
-                    Translation ({targetLangDef.name})
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-accent-teal font-semibold">
+                      Translation ({targetLangDef.name})
+                    </span>
+                    {targetLangDef.direction === 'rtl' && (
+                      <span className="text-[9px] font-mono bg-amber-100 text-amber-800 px-1 rounded font-semibold">
+                        RTL
+                      </span>
+                    )}
+                  </div>
 
                   {onReplayAudio && turn.translatedText && (
                     <button
@@ -135,7 +152,10 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
                   )}
                 </div>
 
-                <p className="text-sm font-medium text-charcoal-800 leading-relaxed">
+                <p
+                  className="text-sm font-medium text-charcoal-800 leading-relaxed"
+                  dir={targetLangDef.direction}
+                >
                   {turn.translatedText || (
                     <span className="text-xs text-charcoal-400 italic">
                       [Translating in real time...]
@@ -175,7 +195,10 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
           </div>
 
           <div className="max-w-2xl rounded-2xl p-4 bg-accent-tealLight/40 border border-accent-teal/30 shadow-subtle">
-            <p className="text-sm font-semibold text-charcoal-900 leading-relaxed font-sans italic">
+            <p
+              className="text-sm font-semibold text-charcoal-900 leading-relaxed font-sans italic"
+              dir={getLanguage(streamingTurn.speakerLanguage).direction}
+            >
               {streamingTurn.originalText || 'Listening...'}
             </p>
           </div>
@@ -186,3 +209,4 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
     </div>
   );
 };
+

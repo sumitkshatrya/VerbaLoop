@@ -19,6 +19,23 @@ describe('TranslationService & Fallback Engine', () => {
     expect(res.translatedText).toBe('मैं आपसे असहमत हूँ।');
   });
 
+  it('translates disagreement phrases across Indian languages (Marathi, Telugu, Gujarati, Urdu, Punjabi)', async () => {
+    const resMr = await translationService.translate('I disagree with you', 'en', 'mr');
+    expect(resMr.translatedText).toContain('असहमत');
+
+    const resTe = await translationService.translate('I disagree with you', 'en', 'te');
+    expect(resTe.translatedText).toContain('ఏకీభవించడం');
+
+    const resGu = await translationService.translate('I disagree with you', 'en', 'gu');
+    expect(resGu.translatedText).toContain('અસહમત');
+
+    const resUr = await translationService.translate('I disagree with you', 'en', 'ur');
+    expect(resUr.translatedText).toContain('متفق');
+
+    const resPa = await translationService.translate('I disagree with you', 'en', 'pa');
+    expect(resPa.translatedText).toContain('ਸਹਿਮਤ');
+  });
+
   it('translates disagreement phrases to Mandarin accurately', async () => {
     const res = await translationService.translate('Wait, let me finish', 'en', 'zh');
     expect(res.translatedText).toBe('等等，让我先把话说完。');
@@ -33,3 +50,4 @@ describe('TranslationService & Fallback Engine', () => {
     expect(translationService.isTurnActive(turnId)).toBe(false);
   });
 });
+

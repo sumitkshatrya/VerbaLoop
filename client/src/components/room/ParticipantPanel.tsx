@@ -82,7 +82,17 @@ export const ParticipantPanel: React.FC<ParticipantPanelProps> = ({
             <div className="flex items-center gap-1.5 text-xs text-charcoal-500 mt-0.5">
               <span>Speaks {langDef.name}</span>
               <span className="text-charcoal-300">•</span>
-              <span className="font-mono text-[11px] text-charcoal-400">{langDef.nativeName}</span>
+              <span
+                className="font-medium text-[11px] text-charcoal-700"
+                dir={langDef.direction}
+              >
+                {langDef.nativeName}
+              </span>
+              {!langDef.capabilities.speechRecognition && (
+                <span className="text-[9px] font-mono px-1 rounded bg-charcoal-100 text-charcoal-600 font-semibold">
+                  Text Mode
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -117,3 +127,4 @@ export const ParticipantPanel: React.FC<ParticipantPanelProps> = ({
     </div>
   );
 };
+

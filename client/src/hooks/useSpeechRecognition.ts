@@ -48,13 +48,21 @@ export function useSpeechRecognition({
   }, []);
 
   const startListening = useCallback(() => {
+    const langDef = getLanguage(language);
+
+    if (!langDef.capabilities.speechRecognition) {
+      if (onError) {
+        onError(`Speech recognition not standardized in browser for ${langDef.name}; text-only mode enabled.`);
+      }
+      return;
+    }
+
     if (!recognitionRef.current) {
       setIsSupported(false);
       return;
     }
 
     const recognition = recognitionRef.current;
-    const langDef = getLanguage(language);
     recognition.lang = langDef.speechCode;
 
     recognition.onstart = () => {
@@ -123,3 +131,4 @@ export function useSpeechRecognition({
     stopListening,
   };
 }
+

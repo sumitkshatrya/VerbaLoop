@@ -38,8 +38,13 @@ export function useSpeechSynthesis() {
       const cleanText = text.trim();
       if (!cleanText) return;
 
-      const utterance = new SpeechSynthesisUtterance(cleanText);
       const langDef = getLanguage(language);
+      if (!langDef.capabilities.speechSynthesis) {
+        if (onEnd) onEnd();
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = langDef.speechCode;
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
@@ -84,3 +89,4 @@ export function useSpeechSynthesis() {
     cancel,
   };
 }
+
