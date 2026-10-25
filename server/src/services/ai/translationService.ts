@@ -274,7 +274,7 @@ CRITICAL INSTRUCTIONS:
 Original text:
 ${text}`;
 
-    const models = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
+    const models = ['gemini-3.8-flash', 'gemini-flash-latest'];
     let lastError: Error | null = null;
 
     try {
@@ -401,11 +401,24 @@ ${text}`;
         throw new Error(`MyMemory API returned status ${response.status}`);
       }
       const data = await response.json();
-      const translated = data?.responseData?.translatedText?.trim();
+      let translated = data?.responseData?.translatedText?.trim();
 
       if (!translated || translated === text) {
         throw new Error('MyMemory could not produce an authentic translation');
       }
+
+      // Decode common HTML entities returned by machine translation engines
+      translated = translated
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&#([0-9]{1,5});/gi, (_match: string, numStr: string) => {
+          const num = parseInt(numStr, 10);
+          return String.fromCharCode(num);
+        });
 
       const match = data?.responseData?.match || 0.85;
 
