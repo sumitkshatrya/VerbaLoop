@@ -18,6 +18,7 @@ export function useSpeechRecognition({
   const [isSupported, setIsSupported] = useState(true);
   const [permissionState, setPermissionState] = useState<'prompt' | 'granted' | 'denied'>('prompt');
   const recognitionRef = useRef<any>(null);
+  const transcriptRef = useRef<string>('');
 
   useEffect(() => {
     const SpeechRecognition =
@@ -64,17 +65,19 @@ export function useSpeechRecognition({
 
     const recognition = recognitionRef.current;
     recognition.lang = langDef.speechCode;
+    transcriptRef.current = '';
 
     recognition.onstart = () => {
       setIsListening(true);
       setPermissionState('granted');
+      transcriptRef.current = '';
     };
 
     recognition.onresult = (event: any) => {
-      let interimTranscript = '';
       let finalTranscript = '';
+      let interimTranscript = '';
 
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
+      for (let i = 0; i < event.results.length; ++i) {
         const item = event.results[i];
         if (item.isFinal) {
           finalTranscript += item[0].transcript;
@@ -83,8 +86,12 @@ export function useSpeechRecognition({
         }
       }
 
-      if (interimTranscript && onPartial) {
-        onPartial(interimTranscript);
+      const combined = (finalTranscript + ' ' + interimTranscript).trim();
+      if (combined) {
+        transcriptRef.current = combined;
+        if (onPartial) {
+          onPartial(combined);
+        }
       }
 
       if (finalTranscript && onFinal) {
@@ -102,6 +109,11 @@ export function useSpeechRecognition({
 
     recognition.onend = () => {
       setIsListening(false);
+      const remaining = transcriptRef.current.trim();
+      if (remaining && onFinal) {
+        onFinal(remaining);
+        transcriptRef.current = '';
+      }
     };
 
     try {
@@ -114,13 +126,16 @@ export function useSpeechRecognition({
     }
   }, [language, onPartial, onFinal, onError]);
 
-  const stopListening = useCallback(() => {
+  const stopListening = useCallback((): string => {
+    const textToSubmit = transcriptRef.current.trim();
     if (recognitionRef.current && isListening) {
       try {
         recognitionRef.current.stop();
       } catch {}
       setIsListening(false);
     }
+    transcriptRef.current = '';
+    return textToSubmit;
   }, [isListening]);
 
   return {

@@ -76,3 +76,4 @@ describe('TrafficController & Redis Rate Limiting', () => {
     expect(res.body.redis).toHaveProperty('connected');
   });
 });
+

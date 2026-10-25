@@ -138,7 +138,15 @@ export function App() {
 
   // Handle Voice Turn Stop
   const handleStopVoiceTurn = () => {
-    stopListening();
+    const text = stopListening();
+    if (activeVoiceTurnId) {
+      if (text && text.trim()) {
+        completeTurn(activeVoiceTurnId, text.trim());
+      } else {
+        cancelTurn(activeVoiceTurnId, 'No speech detected');
+      }
+      setActiveVoiceTurnId(null);
+    }
   };
 
   // Handle Typed Message

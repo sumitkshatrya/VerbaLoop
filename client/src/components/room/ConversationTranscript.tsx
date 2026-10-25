@@ -44,8 +44,15 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
         </div>
       )}
 
-      {/* Render all confirmed turns */}
-      {turns.map((turn: TurnMessage) => {
+      {/* Render all confirmed turns (hide cancelled or incomplete turns without text) */}
+      {turns
+        .filter(
+          (t) =>
+            t.status !== 'cancelled' &&
+            t.status !== 'speaking' &&
+            Boolean(t.originalText && t.originalText.trim())
+        )
+        .map((turn: TurnMessage) => {
         const isFromMe = turn.speakerId === currentParticipant.id;
         const speakerLangDef = getLanguage(turn.speakerLanguage);
         const targetLangDef = getLanguage(turn.targetLanguage);
@@ -156,10 +163,17 @@ export const ConversationTranscript: React.FC<ConversationTranscriptProps> = ({
                   className="text-sm font-medium text-charcoal-800 leading-relaxed"
                   dir={targetLangDef.direction}
                 >
-                  {turn.translatedText || (
-                    <span className="text-xs text-charcoal-400 italic">
+                  {turn.status === 'translating' ? (
+                    <span className="text-xs text-amber-700 italic flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-spin" />
                       [Translating in real time...]
                     </span>
+                  ) : (
+                    turn.translatedText || (
+                      <span className="text-xs text-charcoal-400 italic">
+                        [Translation unavailable]
+                      </span>
+                    )
                   )}
                 </p>
               </div>

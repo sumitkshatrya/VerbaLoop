@@ -98,7 +98,23 @@ export class TurnManager {
       return { turn, isInterrupted: true };
     }
 
-    turn.originalText = originalText.trim();
+    const cleanText = (originalText || '').trim();
+    if (!cleanText) {
+      // Cleanly cancel empty turn so no blank ghost bubbles enter the room
+      turn.status = 'cancelled';
+      turn.isPartial = false;
+      await this.storage.updateTurn(roomCode, turnId, {
+        status: 'cancelled',
+        isPartial: false,
+      });
+      if (room.activeTurnId === turnId) {
+        room.activeTurnId = null;
+        await this.storage.updateRoom(roomCode, { activeTurnId: null });
+      }
+      return { turn, isInterrupted: false };
+    }
+
+    turn.originalText = cleanText;
     turn.status = 'translating';
     turn.isPartial = false;
 
