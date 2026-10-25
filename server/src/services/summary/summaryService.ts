@@ -103,23 +103,31 @@ ${transcript}`;
     let jsonText = '';
 
     if (config.geminiApiKey) {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.geminiApiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.1,
-              responseMimeType: 'application/json',
-            },
-          }),
+      const models = ['gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-1.5-flash'];
+      for (const model of models) {
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.geminiApiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0.1,
+                  responseMimeType: 'application/json',
+                },
+              }),
+            }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+            if (jsonText) break;
+          }
+        } catch {
+          // Continue to next model
         }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
       }
     } else if (config.openaiApiKey) {
       const response = await fetch(`${config.openaiApiBaseUrl}/chat/completions`, {

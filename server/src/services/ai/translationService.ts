@@ -268,38 +268,54 @@ CRITICAL INSTRUCTIONS:
 Original text:
 ${text}`;
 
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.geminiApiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 300,
-            },
-          }),
-          signal: controller.signal,
-        }
-      );
+    const models = ['gemini-flash-latest', 'gemini-3.5-flash-lite', 'gemini-1.5-flash'];
+    let lastError: Error | null = null;
 
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Gemini API HTTP ${response.status}: ${errText}`);
+    try {
+      for (const model of models) {
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.geminiApiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0.2,
+                  maxOutputTokens: 300,
+                },
+              }),
+              signal: controller.signal,
+            }
+          );
+
+          if (!response.ok) {
+            const errText = await response.text();
+            if (response.status === 404) {
+              // Model name deprecated/succeeded, try next
+              continue;
+            }
+            throw new Error(`Gemini API HTTP ${response.status}: ${errText}`);
+          }
+
+          const data = await response.json();
+          const output =
+            data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+          if (!output) throw new Error('Empty response from Gemini');
+
+          return {
+            translatedText: output,
+            provider: model,
+            confidence: 0.95,
+          };
+        } catch (err: any) {
+          lastError = err;
+          if (err.name === 'AbortError') throw err;
+        }
       }
 
-      const data = await response.json();
-      const output =
-        data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-      if (!output) throw new Error('Empty response from Gemini');
-
-      return {
-        translatedText: output,
-        provider: 'gemini-1.5-flash',
-        confidence: 0.95,
-      };
+      throw lastError || new Error('All Gemini model endpoints failed');
     } finally {
       clearTimeout(timeout);
     }
