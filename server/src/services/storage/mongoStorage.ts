@@ -1,3 +1,4 @@
+import dns from 'dns';
 import mongoose from 'mongoose';
 import {
   RoomState,
@@ -16,9 +17,25 @@ export class MongoStorage implements IStorageRepository {
 
   async init(): Promise<void> {
     if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect(this.mongoUri, {
-        serverSelectionTimeoutMS: 2000,
-      });
+      try {
+        await mongoose.connect(this.mongoUri, {
+          serverSelectionTimeoutMS: 8000,
+        });
+      } catch (err: any) {
+        // On Windows, local ISP DNS often rejects SRV queries (querySrv ECONNREFUSED)
+        // Fall back to public resolvers (Google / Cloudflare) to resolve MongoDB Atlas SRV records
+        if (
+          err?.message?.includes('querySrv') ||
+          err?.message?.includes('ECONNREFUSED')
+        ) {
+          dns.setServers(['8.8.8.8', '1.1.1.1']);
+          await mongoose.connect(this.mongoUri, {
+            serverSelectionTimeoutMS: 8000,
+          });
+        } else {
+          throw err;
+        }
+      }
     }
   }
 

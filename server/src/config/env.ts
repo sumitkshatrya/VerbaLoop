@@ -2,6 +2,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config();
+// Also attempt loading .env from server directory and root directory
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 export interface ServerConfig {
   port: number;
