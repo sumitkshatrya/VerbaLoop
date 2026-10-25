@@ -217,7 +217,26 @@ export class TranslationService {
         }
       }
 
-      // 3. Try MyMemory Free API (max 2000ms before instant fallback)
+      // 3. Try High-Performance Google Neural Engine (Free, fast, no quota limits)
+      try {
+        const result = await this.translateWithGoogleGTX(
+          cleanText,
+          sourceLang,
+          targetLang
+        );
+        if (turnId && !this.isTurnActive(turnId)) {
+          throw new Error(`Turn ${turnId} was cancelled/interrupted during translation.`);
+        }
+        return {
+          ...result,
+          durationMs: Date.now() - startTime,
+        };
+      } catch (err: any) {
+        if (err.message?.includes('cancelled')) throw err;
+        console.warn('⚠️ [Translation] Google Neural GTX failed, trying MyMemory:', err.message);
+      }
+
+      // 4. Try MyMemory Free API (with extended timeout & quota pool)
       try {
         const result = await this.translateWithMyMemory(
           cleanText,
@@ -233,10 +252,10 @@ export class TranslationService {
         };
       } catch (err: any) {
         if (err.message?.includes('cancelled')) throw err;
-        console.warn('⚠️ [Translation] MyMemory timed out or failed, using instant local engine:', err.message);
+        console.warn('⚠️ [Translation] MyMemory timed out or failed, using local engine:', err.message);
       }
 
-      // 4. Resilient Local Engine fallback
+      // 5. Resilient Local Engine fallback
       const localResult = this.translateWithLocalEngine(
         cleanText,
         sourceLang,
@@ -382,18 +401,59 @@ ${text}`;
     }
   }
 
+  private async translateWithGoogleGTX(
+    text: string,
+    sourceLang: SupportedLanguageCode,
+    targetLang: SupportedLanguageCode
+  ): Promise<{ translatedText: string; provider: string; confidence: number }> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(
+      sourceLang
+    )}&tl=${encodeURIComponent(targetLang)}&dt=t&q=${encodeURIComponent(text)}`;
+
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) {
+        throw new Error(`Google GTX returned status ${response.status}`);
+      }
+      const data = await response.json();
+      if (!Array.isArray(data) || !Array.isArray(data[0])) {
+        throw new Error('Invalid response structure from Google GTX');
+      }
+
+      const translated = data[0]
+        .map((item: any) => (Array.isArray(item) ? item[0] : ''))
+        .filter(Boolean)
+        .join('');
+
+      if (!translated || translated.trim() === '') {
+        throw new Error('Google GTX produced empty translation');
+      }
+
+      return {
+        translatedText: translated.trim(),
+        provider: 'google-neural-gtx',
+        confidence: 0.95,
+      };
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   private async translateWithMyMemory(
     text: string,
     sourceLang: SupportedLanguageCode,
     targetLang: SupportedLanguageCode
   ): Promise<{ translatedText: string; provider: string; confidence: number }> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2000);
+    const timeout = setTimeout(() => controller.abort(), 4000);
 
     const langPair = `${sourceLang}|${targetLang}`;
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
       text
-    )}&langpair=${encodeURIComponent(langPair)}`;
+    )}&langpair=${encodeURIComponent(langPair)}&de=admin@verbaloop.com`;
 
     try {
       const response = await fetch(url, { signal: controller.signal });
@@ -405,6 +465,11 @@ ${text}`;
 
       if (!translated || translated === text) {
         throw new Error('MyMemory could not produce an authentic translation');
+      }
+
+      // Check if MyMemory returned warning/error text inside responseData
+      if (translated.includes('MYMEMORY WARNING') || translated.includes('QUERY LENGTH LIMIT EXCEEDED')) {
+        throw new Error(`MyMemory quota warning: ${translated}`);
       }
 
       // Decode common HTML entities returned by machine translation engines
