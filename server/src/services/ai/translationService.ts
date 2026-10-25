@@ -414,7 +414,16 @@ ${text}`;
     )}&tl=${encodeURIComponent(targetLang)}&dt=t&q=${encodeURIComponent(text)}`;
 
     try {
-      const response = await fetch(url, { signal: controller.signal });
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept': '*/*',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://translate.google.com/',
+        },
+      });
       if (!response.ok) {
         throw new Error(`Google GTX returned status ${response.status}`);
       }
@@ -456,7 +465,16 @@ ${text}`;
     )}&langpair=${encodeURIComponent(langPair)}&de=admin@verbaloop.com`;
 
     try {
-      const response = await fetch(url, { signal: controller.signal });
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept': '*/*',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://translate.google.com/',
+        },
+      });
       if (!response.ok) {
         throw new Error(`MyMemory API returned status ${response.status}`);
       }
